@@ -155,7 +155,7 @@ OnTick(function()
 		if LuxMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, 1300) then
 			if GetCurrentHP(enemy) < getdmg("Q", enemy, myHero) then
 				local QPred = GetPrediction(target, LuxQ)
-				if QPred.hitChance > 0.8 then	
+				if QPred.hitChance > 0.8 and not QPred:mCollision(2) then
 					CastSkillShot(_Q, QPred.castPos)
 				end
 			end
@@ -164,7 +164,7 @@ OnTick(function()
 		-- E
 		if LuxMenu.Ks.E:Value() and Ready(_E) and ValidTarget(enemy, 1100) then
 			if GetCurrentHP(enemy) < getdmg("E", enemy, myHero) then
-				local EPred = GetPrediction(target, LuxE)
+				local EPred = GetCircularAOEPrediction(target, LuxE)
 				if EPred.hitChance > 0.8 then
 					CastSkillShot(_E, EPred.castPos)
 				end
