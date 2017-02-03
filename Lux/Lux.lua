@@ -22,7 +22,7 @@ LuxMenu.Combo:Boolean("E", "Use E", true)
 --          [[ Harass ]]
 LuxMenu:SubMenu("Harass", "Harass Settings")
 LuxMenu.Harass:Boolean("Q", "Use Q", true)
-LuxMenu.Harass:Boolean("E", "Use W", true)
+LuxMenu.Harass:Boolean("E", "Use E", true)
 LuxMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 
 --          [[ LaneClear ]]
@@ -199,4 +199,4 @@ OnDraw(function(myHero)
 	if LuxMenu.Draw.R:Value() then DrawCircle(pos, 3340, 1, 25, GoS.Green) end
 end)	
 --          [[ PrintChat ]]
-print ("Lux Script")
+print ("Lux By Jani.")

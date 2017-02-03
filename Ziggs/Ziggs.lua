@@ -19,7 +19,7 @@ ZiggsMenu.Combo:Boolean("E", "Use E", true)
 --          [[ Harass ]]
 ZiggsMenu:SubMenu("Harass", "Harass Settings")
 ZiggsMenu.Harass:Boolean("Q", "Use Q", true)
-ZiggsMenu.Harass:Boolean("E", "Use W", true)
+ZiggsMenu.Harass:Boolean("E", "Use E", true)
 ZiggsMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 
 --          [[ LaneClear ]]
@@ -199,4 +199,4 @@ OnDraw(function(myHero)
 	if ZiggsMenu.Draw.R:Value() then DrawCircle(pos, 5000, 1, 25, GoS.Green) end
 end)	
 --          [[ PrintChat ]]
-print ("Ziggs Script")
+print ("Ziggs By Jani.")
