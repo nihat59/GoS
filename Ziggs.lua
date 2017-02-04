@@ -2,11 +2,10 @@
 if GetObjectName(GetMyHero()) ~= "Ziggs" then return end
 
 --          [[ Updater ]]
-local LoLVer = "7.2"
-local ScrVer = 1
+local Ver = "0.1"
 
-local function Ziggs_Update(data)
-    if tonumber(data) > ScrVer then
+local function AutoUpdate(data)
+    if tonumber(data) > tonumber(ver) then
         PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
         PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
         DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Ziggs.lua", SCRIPT_PATH .. "Ziggs.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
@@ -15,7 +14,7 @@ local function Ziggs_Update(data)
     end
 end
 
-GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Ziggs.version", Ziggs_Update)
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Ziggs.version", AutoUpdate)
 --          [[ Lib ]]
 require ("OpenPredict")
 require ("DamageLib")
