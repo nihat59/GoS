@@ -2,6 +2,20 @@
 if GetObjectName(GetMyHero()) ~= "Veigar" then return end
 
 --          [[ Updater ]]
+local LoLVer = "7.2"
+local ScrVer = 1
+
+local function Veigar_Update(data)
+    if tonumber(data) > ScrVer then
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Veigar.lua", SCRIPT_PATH .. "Veigar.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
+    else
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+    end
+end
+
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Veigar.version", Veigar_Update)
 
 --          [[ Lib ]]
 require ("OpenPredict")
@@ -25,8 +39,14 @@ VeigarMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 --          [[ LaneClear ]]
 VeigarMenu:SubMenu("Farm", "Farm Settings")
 VeigarMenu.Farm:Boolean("Q", "Use Q", true)
-VeigarMenu.Farm:Boolean("W", "Use W", true)
+VeigarMenu.Farm:Boolean("W", "Use W", false)
 VeigarMenu.Farm:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
+
+--          [[ Jungle ]]
+VeigarMenu:SubMenu("JG", "Jungle Settings")
+VeigarMenu.JG:Boolean("Q", "Use Q", true)
+VeigarMenu.JG:Boolean("W", "Use W", true)
+VeigarMenu.JG:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 
 --          [[ KillSteal ]]
 VeigarMenu:SubMenu("Ks", "KillSteal Settings")
@@ -114,10 +134,12 @@ OnTick(function()
 			for _, minion in pairs(minionManager.objects) do
 				if GetTeam(minion) == MINION_ENEMY then
 					if VeigarMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(minion, 900) then
+						if GetCurrentHP(minion) < getdmg("Q", minion, myHero) then
 						CastSkillShot(_Q, minion)
 					end
 				end
 			end
+		end	
 			for _, minion in pairs(minionManager.objects) do
 				if GetTeam(minion) == MINION_ENEMY then
 					if VeigarMenu.Farm.W:Value() and Ready(_W) and ValidTarget(minion, 900) then
@@ -129,7 +151,7 @@ OnTick(function()
 			-- [[ Jungle ]]
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if VeigarMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(mob, 900) then
+					if VeigarMenu.JG.Q:Value() and Ready(_Q) and ValidTarget(mob, 900) then
 						CastSkillShot(_Q, mob)
 					end
 				end
@@ -137,7 +159,7 @@ OnTick(function()
 
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if VeigarMenu.Farm.W:Value() and Ready(_W) and ValidTarget(mob, 900) then
+					if VeigarMenu.JG.W:Value() and Ready(_W) and ValidTarget(mob, 900) then
 						CastSkillShot(_W, mob)
 					end
 				end
@@ -171,7 +193,6 @@ end)
 --          [[ Drawings ]]
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
-	local mpos = GetMousePos()
 		-- [[ Draw Q ]]
 	if VeigarMenu.Draw.Q:Value() then DrawCircle(pos, 900, 1, 25, GoS.Red) end
 		-- [[ Draw W ]]
@@ -181,5 +202,3 @@ OnDraw(function(myHero)
 		-- [[ Draw R ]]  
 	if VeigarMenu.Draw.R:Value() then DrawCircle(pos, 650, 1, 25, GoS.Green) end
 end)	
---          [[ PrintChat ]]
-print ("Veigar By Jani.")

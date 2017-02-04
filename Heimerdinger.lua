@@ -2,6 +2,20 @@
 if GetObjectName(GetMyHero()) ~= "Heimerdinger" then return end
 
 --          [[ Updater ]]
+local LoLVer = "7.2"
+local ScrVer = 1
+
+local function Heimerdinger_Update(data)
+    if tonumber(data) > ScrVer then
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Heimerdinger]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Heimerdinger]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Heimerdinger.lua", SCRIPT_PATH .. "Heimerdinger.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Heimerdinger]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
+    else
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Heimerdinger]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+    end
+end
+
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Heimerdinger.version", Heimerdinger_Update)
 
 --          [[ Lib ]]
 require ("OpenPredict")
@@ -66,12 +80,12 @@ OnTick(function()
 	local target = GetCurrentTarget()
 	if Mode() == "Combo" then
 		-- [[ Use Q ]]
-		--[[if HeimerdingerMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, 300) then
+		if HeimerdingerMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, 300) then
 			local QPred = GetCircularAOEPrediction(target, HeimerdingerQ)
 			if QPred.hitChance > 0.2 then
-				CastSkillShot(_Q, CastPos)
+				CastTargetSpell(enemy, _Q)
 			end
-		end	]]
+		end	
 		-- [[ Use QR ]]
 		--[[if Ready(_Q) and Ready(_R) and EnemiesAround(Enemy, 300) >= HeimerdingerMenu.Combo.QRC:Value() and HeimerdingerMenu.Combo.QR:Value() then
 				CastSkillShot(_Q, CastPos)
@@ -207,5 +221,3 @@ OnDraw(function(myHero)
 		-- [[ Draw R ]]  
 	if HeimerdingerMenu.Draw.R:Value() then DrawCircle(pos, 1, 1, 25, GoS.Green) end
 end)	
---          [[ PrintChat ]]
-print ("Heimerdinger By Jani.")

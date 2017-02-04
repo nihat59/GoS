@@ -2,6 +2,20 @@
 if GetObjectName(GetMyHero()) ~= "Lux" then return end
 
 --          [[ Updater ]]
+local LoLVer = "7.2"
+local ScrVer = 1
+
+local function Lux_Update(data)
+    if tonumber(data) > ScrVer then
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Lux]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Lux]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Lux.lua", SCRIPT_PATH .. "Lux.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Lux]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
+    else
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Lux]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+    end	
+end
+
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Lux.version", Lux_Update)
 
 --          [[ Lib ]]
 require ("OpenPredict")
@@ -27,9 +41,15 @@ LuxMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 
 --          [[ LaneClear ]]
 LuxMenu:SubMenu("Farm", "Farm Settings")
-LuxMenu.Farm:Boolean("Q", "Use Q", true)
+LuxMenu.Farm:Boolean("Q", "Use Q", false)
 LuxMenu.Farm:Boolean("E", "Use E", true)
 LuxMenu.Farm:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
+
+--          [[ Jungle ]]
+LuxMenu:SubMenu("JG", "Jungle Settings")
+LuxMenu.JG:Boolean("Q", "Use Q", true)
+LuxMenu.JG:Boolean("E", "Use E", true)
+LuxMenu.JG:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 
 --          [[ KillSteal ]]
 LuxMenu:SubMenu("Ks", "KillSteal Settings")
@@ -42,7 +62,6 @@ LuxMenu:SubMenu("Draw", "Drawing Settings")
 LuxMenu.Draw:Boolean("Q", "Draw Q", false)
 LuxMenu.Draw:Boolean("W", "Draw W", false)
 LuxMenu.Draw:Boolean("E", "Draw E", false)
-LuxMenu.Draw:Boolean("R", "Draw R", false)
 
 --          [[ Spell ]]
 local LuxQ = {delay = 0.25, range = 1300, width = 80, speed = 1200}
@@ -133,7 +152,7 @@ OnTick(function()
 			-- [[ Jungle ]]
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if LuxMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(mob, 1000) then
+					if LuxMenu.JG.Q:Value() and Ready(_Q) and ValidTarget(mob, 1000) then
 						CastSkillShot(_Q, mob)
 					end
 				end
@@ -141,7 +160,7 @@ OnTick(function()
 
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if LuxMenu.Farm.E:Value() and Ready(_E) and ValidTarget(mob, 1000) then
+					if LuxMenu.JG.E:Value() and Ready(_E) and ValidTarget(mob, 1000) then
 						CastSkillShot(_E, mob)
 					end
 				end
@@ -188,15 +207,10 @@ end)
 --          [[ Drawings ]]
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
-	local mpos = GetMousePos()
 		-- [[ Draw Q ]]
 	if LuxMenu.Draw.Q:Value() then DrawCircle(pos, 1300, 1, 25, GoS.Red) end
 		-- [[ Draw W ]]
 	if LuxMenu.Draw.W:Value() then DrawCircle(pos, 1075, 1, 25, GoS.Blue) end
 		-- [[ Draw E ]]
 	if LuxMenu.Draw.E:Value() then DrawCircle(pos, 1100, 1, 25, GoS.Blue) end
-		-- [[ Draw R ]]  
-	if LuxMenu.Draw.R:Value() then DrawCircle(pos, 3340, 1, 25, GoS.Green) end
-end)	
---          [[ PrintChat ]]
-print ("Lux By Jani.")
+end)		

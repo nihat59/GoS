@@ -2,7 +2,20 @@
 if GetObjectName(GetMyHero()) ~= "Ziggs" then return end
 
 --          [[ Updater ]]
+local LoLVer = "7.2"
+local ScrVer = 1
 
+local function Ziggs_Update(data)
+    if tonumber(data) > ScrVer then
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Ziggs.lua", SCRIPT_PATH .. "Ziggs.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
+    else
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+    end
+end
+
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Ziggs.version", Ziggs_Update)
 --          [[ Lib ]]
 require ("OpenPredict")
 require ("DamageLib")
@@ -28,6 +41,12 @@ ZiggsMenu.Farm:Boolean("Q", "Use Q", true)
 ZiggsMenu.Farm:Boolean("E", "Use E", true)
 ZiggsMenu.Farm:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 
+--          [[ Jungle ]]
+ZiggsMenu:SubMenu("JG", "Jungle Settings")
+ZiggsMenu.JG:Boolean("Q", "Use Q", true)
+ZiggsMenu.JG:Boolean("E", "Use E", true)
+ZiggsMenu.JG:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
+
 --          [[ KillSteal ]]
 ZiggsMenu:SubMenu("Ks", "KillSteal Settings")
 ZiggsMenu.Ks:Boolean("Q", "Use Q", true)
@@ -39,7 +58,6 @@ ZiggsMenu:SubMenu("Draw", "Drawing Settings")
 ZiggsMenu.Draw:Boolean("Q", "Draw Q", false)
 ZiggsMenu.Draw:Boolean("W", "Draw W", false)
 ZiggsMenu.Draw:Boolean("E", "Draw E", false)
-ZiggsMenu.Draw:Boolean("R", "Draw R", false)
 
 --          [[ Spell ]]
 local ZiggsQ = {delay = 0.25, range = 850, width = 100, speed = 1700}
@@ -133,7 +151,7 @@ OnTick(function()
 			-- [[ Jungle ]]
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if ZiggsMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(mob, 800) then
+					if ZiggsMenu.JG.Q:Value() and Ready(_Q) and ValidTarget(mob, 800) then
 						CastSkillShot(_Q, mob)
 					end
 				end
@@ -141,7 +159,7 @@ OnTick(function()
 
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if ZiggsMenu.Farm.E:Value() and Ready(_E) and ValidTarget(mob, 800) then
+					if ZiggsMenu.JG.E:Value() and Ready(_E) and ValidTarget(mob, 800) then
 						CastSkillShot(_E, mob)
 					end
 				end
@@ -188,15 +206,10 @@ end)
 --          [[ Drawings ]]
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
-	local mpos = GetMousePos()
 		-- [[ Draw Q ]]
 	if ZiggsMenu.Draw.Q:Value() then DrawCircle(pos, 850, 1, 25, GoS.Red) end
 		-- [[ Draw W ]]
 	if ZiggsMenu.Draw.W:Value() then DrawCircle(pos, 1000, 1, 25, GoS.Blue) end
 		-- [[ Draw E ]]
-	if ZiggsMenu.Draw.E:Value() then DrawCircle(pos, 900, 1, 25, GoS.Blue) end
-		-- [[ Draw R ]]  
-	if ZiggsMenu.Draw.R:Value() then DrawCircle(pos, 5000, 1, 25, GoS.Green) end
+	if ZiggsMenu.Draw.E:Value() then DrawCircle(pos, 900, 1, 25, GoS.Green) end
 end)	
---          [[ PrintChat ]]
-print ("Ziggs By Jani.")

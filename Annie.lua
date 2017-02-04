@@ -2,6 +2,20 @@
 if GetObjectName(GetMyHero()) ~= "Annie" then return end
 
 --          [[ Updater ]]
+local LoLVer = "7.2"
+local ScrVer = 1
+
+local function Annie_Update(data)
+    if tonumber(data) > ScrVer then
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Annie.lua", SCRIPT_PATH .. "Annie.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
+    else
+        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+    end
+end
+
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Annie.version", Annie_Update)
 
 --          [[ Lib ]]
 require ("OpenPredict")
@@ -26,8 +40,13 @@ AnnieMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 --          [[ LaneClear ]]
 AnnieMenu:SubMenu("Farm", "Farm Settings")
 AnnieMenu.Farm:Boolean("Q", "Use Q", true)
-AnnieMenu.Farm:Boolean("W", "Use W", true)
+AnnieMenu.Farm:Boolean("W", "Use W", false)
 AnnieMenu.Farm:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
+--          [[ Jungle ]]
+AnnieMenu:SubMenu("JG", "Jungle Settings")
+AnnieMenu.JG:Boolean("Q", "Use Q", true)
+AnnieMenu.JG:Boolean("W", "Use W", true)
+AnnieMenu.JG:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 
 --          [[ KillSteal ]]
 AnnieMenu:SubMenu("Ks", "KillSteal Settings")
@@ -35,19 +54,17 @@ AnnieMenu.Ks:Boolean("Q", "Use Q", true)
 AnnieMenu.Ks:Boolean("W", "Use W", true)
 AnnieMenu.Ks:Boolean("R", "Use R", true)
 --          [[ Misc ]]
---[[AnnieMenu:SubMenu("Misc", "Misc Settings")
-AnnieMenu.Misc:Boolean("E", "Auto Stun E", true) ]]
+AnnieMenu:SubMenu("Misc", "Misc Settings")
+AnnieMenu.Misc:Boolean("E", "Auto E", true)
 
 --          [[ Draw ]]
 AnnieMenu:SubMenu("Draw", "Drawing Settings")
 AnnieMenu.Draw:Boolean("Q", "Draw Q", false)
 AnnieMenu.Draw:Boolean("W", "Draw W", false)
-AnnieMenu.Draw:Boolean("E", "Draw E", false)
-AnnieMenu.Draw:Boolean("R", "Draw R", false)
 
 --          [[ Spell ]]
 local AnnieW = {delay = 0.25, range = 576, width = 150, speed = 1200}
-local AnnieR = {delay = 0.75, range = 600, width = 150, speed = math.huge}
+local AnnieR = {delay = 0.75, range = 600, width = 300, speed = math.huge}
 
 --          [[ Orbwalker ]]
 function Mode()
@@ -118,10 +135,12 @@ OnTick(function()
 			for _, minion in pairs(minionManager.objects) do
 				if GetTeam(minion) == MINION_ENEMY then
 					if AnnieMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(minion, 625) then
+						if GetCurrentHP(minion) < getdmg("Q", minion, myHero) then
 						CastTargetSpell(minion, _Q)
 					end
 				end
 			end
+		end	
 			for _, minion in pairs(minionManager.objects) do
 				if GetTeam(minion) == MINION_ENEMY then
 					if AnnieMenu.Farm.W:Value() and Ready(_W) and ValidTarget(minion, 576) then
@@ -133,7 +152,7 @@ OnTick(function()
 			-- [[ Jungle ]]
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if AnnieMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(mob, 625) then
+					if AnnieMenu.JG.Q:Value() and Ready(_Q) and ValidTarget(mob, 625) then
 						CastTargetSpell(mob, _Q)
 					end
 				end
@@ -141,7 +160,7 @@ OnTick(function()
 
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if AnnieMenu.Farm.W:Value() and Ready(_W) and ValidTarget(mob, 576) then
+					if AnnieMenu.JG.W:Value() and Ready(_W) and ValidTarget(mob, 576) then
 						CastSkillShot(_W, mob)
 					end
 				end
@@ -169,21 +188,12 @@ OnTick(function()
 		end
 	end
 end)
-       
-
 
 --          [[ Drawings ]]
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
-	local mpos = GetMousePos()
 		-- [[ Draw Q ]]
 	if AnnieMenu.Draw.Q:Value() then DrawCircle(pos, 1300, 1, 25, GoS.Red) end
 		-- [[ Draw W ]]
 	if AnnieMenu.Draw.W:Value() then DrawCircle(pos, 1075, 1, 25, GoS.Blue) end
-		-- [[ Draw E ]]
-	if AnnieMenu.Draw.E:Value() then DrawCircle(pos, 1100, 1, 25, GoS.Blue) end
-		-- [[ Draw R ]]  
-	if AnnieMenu.Draw.R:Value() then DrawCircle(pos, 3340, 1, 25, GoS.Green) end
 end)	
---          [[ PrintChat ]]
-print ("Annie By Jani")
