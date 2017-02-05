@@ -1,6 +1,5 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Lux" then return end
-
 --          [[ Updater ]]
 --[[local Ver = "0.1"
 
@@ -15,14 +14,11 @@ local function AutoUpdate(data)
 end
 
 GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Lux.version", AutoUpdate)]]
-
 --          [[ Lib ]]
 require ("OpenPredict")
 require ("DamageLib")
-
 --          [[ Menu ]]
 local LuxMenu = Menu("Lux", "Lux")
-
 --          [[ Combo ]]
 LuxMenu:SubMenu("Combo", "Combo Settings")
 LuxMenu.Combo:Boolean("Q", "Use Q", true)
@@ -31,36 +27,30 @@ LuxMenu.Combo:Boolean("WA", "Use W on Ally", false)
 LuxMenu.Combo:Slider("WM", "Use W on HP", 50, 1, 100, 1)
 LuxMenu.Combo:Slider("WMA", "No Options here", 1, 1, 5, 1)
 LuxMenu.Combo:Boolean("E", "Use E", true)
-
 --          [[ Harass ]]
 LuxMenu:SubMenu("Harass", "Harass Settings")
 LuxMenu.Harass:Boolean("Q", "Use Q", true)
 LuxMenu.Harass:Boolean("E", "Use E", true)
 LuxMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
-
 --          [[ LaneClear ]]
 LuxMenu:SubMenu("Farm", "Farm Settings")
 LuxMenu.Farm:Boolean("Q", "Use Q", false)
 LuxMenu.Farm:Boolean("E", "Use E", true)
 LuxMenu.Farm:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
-
 --          [[ Jungle ]]
 LuxMenu:SubMenu("JG", "Jungle Settings")
 LuxMenu.JG:Boolean("Q", "Use Q", true)
 LuxMenu.JG:Boolean("E", "Use E", true)
-
 --          [[ KillSteal ]]
 LuxMenu:SubMenu("Ks", "KillSteal Settings")
 LuxMenu.Ks:Boolean("Q", "Use Q", true)
 LuxMenu.Ks:Boolean("E", "Use E", true)
 LuxMenu.Ks:Boolean("R", "Use R", true)
-
 --          [[ Draw ]]
 LuxMenu:SubMenu("Draw", "Drawing Settings")
 LuxMenu.Draw:Boolean("Q", "Draw Q", false)
 LuxMenu.Draw:Boolean("W", "Draw W", false)
 LuxMenu.Draw:Boolean("E", "Draw E", false)
-
 --          [[ Spell ]]
 local Spells = {
  Q = {range = 1175, delay = 0.25, speed = 1200, width = 70},
@@ -68,7 +58,6 @@ local Spells = {
  E = {range = 1100, delay = 0.25, speed = 1300, radius = 330},
  R = {range = 3340, delay = 1.0, speed = math.huge, width = 190}
 }
-
 --          [[ Orbwalker ]]
 function Mode()
 	if _G.IOW_Loaded and IOW:Mode() then
@@ -83,7 +72,6 @@ function Mode()
 		return SLW:Mode()
 	end
 end
-
 --          [[ Tick ]]
 OnTick(function()
 	KS()
@@ -117,9 +105,7 @@ function LuxR()
 		CastSkillShot(_R, RPred.castPos)
 	end	
 end  
-
 --          [[ Combo ]]
-
 function Combo()
 	if Mode() == "Combo" then
 --		[[ Use Q ]]
@@ -144,12 +130,10 @@ end
 function Harass()
 	if Mode() == "Harass" then
 		if (myHero.mana/myHero.maxMana >= LuxMenu.Harass.Mana:Value() /100) then
-
 -- 			[[ Use Q ]]
 			if LuxMenu.Harass.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then
 				LuxQ()
 			end
-
 -- 			[[ Use E ]]
 			if LuxMenu.Harass.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
 				LuxE()
@@ -161,7 +145,6 @@ end
 function Farm()
 	if Mode() == "LaneClear" then
 		if (myHero.mana/myHero.maxMana >= LuxMenu.Farm.Mana:Value() /100) then
-			
 -- 			[[ Lane ]]
 			for _, minion in pairs(minionManager.objects) do
 				if GetTeam(minion) == MINION_ENEMY then
@@ -175,8 +158,6 @@ function Farm()
 						end	
 					end
 				end	
-
-
 -- 			[[ Jungle ]]
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
@@ -193,7 +174,6 @@ function Farm()
 			end
 		end
 	end
-
 --          [[ KillSteal ]]
 function KS()
 	for _, enemy in pairs(GetEnemyHeroes()) do
@@ -219,14 +199,13 @@ function KS()
 			end
 		end
 	end
-
 --          [[ Drawings ]]
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
-		-- [[ Draw Q ]]
+--  [[ Draw Q ]]
 	if LuxMenu.Draw.Q:Value() then DrawCircle(pos, 1175, 0, 25, GoS.Red) end
-		-- [[ Draw W ]]
+--  [[ Draw W ]]
 	if LuxMenu.Draw.W:Value() then DrawCircle(pos, 1075, 0, 25, GoS.Blue) end
-		-- [[ Draw E ]]
+--  [[ Draw E ]]
 	if LuxMenu.Draw.E:Value() then DrawCircle(pos, 1100, 0, 25, GoS.Green) end
 end)		
