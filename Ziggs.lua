@@ -1,10 +1,9 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Ziggs" then return end
-
 --          [[ Updater ]]
 local Ver = "0.1"
 
-local function AutoUpdate(data)
+--[[local function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
         PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
         PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
@@ -14,56 +13,48 @@ local function AutoUpdate(data)
     end
 end
 
-GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Ziggs.version", AutoUpdate)
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Ziggs.version", AutoUpdate)]]
 --          [[ Lib ]]
 require ("OpenPredict")
 require ("DamageLib")
-
 --          [[ Menu ]]
 local ZiggsMenu = Menu("Ziggs", "Ziggs")
-
 --          [[ Combo ]]
 ZiggsMenu:SubMenu("Combo", "Combo Settings")
 ZiggsMenu.Combo:Boolean("Q", "Use Q", true)
 ZiggsMenu.Combo:Boolean("W", "Use W", true)
 ZiggsMenu.Combo:Boolean("E", "Use E", true)
-
 --          [[ Harass ]]
 ZiggsMenu:SubMenu("Harass", "Harass Settings")
 ZiggsMenu.Harass:Boolean("Q", "Use Q", true)
 ZiggsMenu.Harass:Boolean("E", "Use E", true)
 ZiggsMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
-
 --          [[ LaneClear ]]
 ZiggsMenu:SubMenu("Farm", "Farm Settings")
 ZiggsMenu.Farm:Boolean("Q", "Use Q", true)
 ZiggsMenu.Farm:Boolean("E", "Use E", true)
 ZiggsMenu.Farm:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
-
 --          [[ Jungle ]]
 ZiggsMenu:SubMenu("JG", "Jungle Settings")
 ZiggsMenu.JG:Boolean("Q", "Use Q", true)
 ZiggsMenu.JG:Boolean("E", "Use E", true)
-ZiggsMenu.JG:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
-
 --          [[ KillSteal ]]
 ZiggsMenu:SubMenu("Ks", "KillSteal Settings")
 ZiggsMenu.Ks:Boolean("Q", "Use Q", true)
 ZiggsMenu.Ks:Boolean("E", "Use E", true)
 ZiggsMenu.Ks:Boolean("R", "Use R", true)
-
 --          [[ Draw ]]
 ZiggsMenu:SubMenu("Draw", "Drawing Settings")
 ZiggsMenu.Draw:Boolean("Q", "Draw Q", false)
 ZiggsMenu.Draw:Boolean("W", "Draw W", false)
 ZiggsMenu.Draw:Boolean("E", "Draw E", false)
-
 --          [[ Spell ]]
-local ZiggsQ = {delay = 0.25, range = 850, width = 100, speed = 1700}
-local ZiggsW = {delay = 0.25, range = 1000, width = 100, speed = 1500}
-local ZiggsE = {delay = 0.25, range = 900, radius = 100, speed = 1300}
-local ZiggsR = {delay = 1.35, range = 5000, radius = 550, speed = 2000}
-
+local Spells = {
+ Q = {range = 1100, delay = 0.25, speed = 1700, width = 30},
+ W = {range = 1000, delay = 0.25, speed = 1300, width = 100},
+ E = {range = 900 , delay = 0.25, speed = 1300, radius = 100},
+ R = {range = 5000, delay = 0.25, speed = math.huge, width = 550}
+}
 --          [[ Orbwalker ]]
 function Mode()
 	if _G.IOW_Loaded and IOW:Mode() then
@@ -78,137 +69,137 @@ function Mode()
 		return SLW:Mode()
 	end
 end
-
 --          [[ Tick ]]
 OnTick(function()
-
-	local target = GetCurrentTarget()
+	KS()
+	target = GetCurrentTarget()
+	         Combo()
+	         Harass()
+	         Farm()
+	    end)  
+--          [[ ZiggsQ ]]
+function ZiggsQ()	
+	local QPred = GetPrediction(target, Spells.Q)
+	if QPred.hitChance >0.3 then
+		CastSkillShot(_Q, QPred.castPos)
+	end	
+end   
+--          [[ ZiggsW ]]
+function ZiggsW()
+	local WPred = GetPrediction(target, Spells.W)
+	if WPred.hitChance > 0.3 then
+		CastSkillShot(_W, WPred.castPos)
+	end	
+end 
+--          [[ ZiggsE ]]
+function ZiggsE()
+	local EPred = GetCircularAOEPrediction(target, Spells.E)
+	if EPred.hitChance > 0.3 then
+		CastSkillShot(_E, EPred.castPos)
+	end	
+end  
+--          [[ ZiggsR ]]
+function ZiggsR()
+	local RPred = GetCircularAOEPrediction(target, Spells.R)
+	if RPred.hitChance > 0.8 then
+		CastSkillShot(_R, RPred.castPos)
+	end	
+end 
+--          [[ Combo ]]
+function Combo()
 	if Mode() == "Combo" then
-		-- [[ Use Q ]]
-		if ZiggsMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, 850) then
-			local QPred = GetPrediction(target, ZiggsQ)
-			if QPred.hitChance > 0.2 then
-				CastSkillShot(_Q, QPred.castPos)
+-- 		[[ Use Q ]]
+		if ZiggsMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then
+			ZiggsQ()
 			end
-		end
-		-- [[ Use W ]]
-		if ZiggsMenu.Combo.W:Value() and Ready(_W) and ValidTarget(target, 850) then
-			local WPred = GetPrediction(target, ZiggsW)
-			if WPred.hitChance > 0.2 then
-				CastSkillShot(_W, WPred.castPos)
+-- 		[[ Use W ]]
+		if ZiggsMenu.Combo.W:Value() and Ready(_W) and ValidTarget(target, Spells.W.range) then
+			ZiggsW()
 			end
-		end	
-		-- [[ Use E ]]
-		if ZiggsMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, 900) then
-			local EPred = GetCircularAOEPrediction(target, ZiggsE)
-			if EPred.hitChance > 0.2 then
-				CastSkillShot(_E, EPred.castPos)
+-- 		[[ Use E ]]
+		if ZiggsMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
+			ZiggsE()
 			end
 		end
 	end
-
+--          [[ Harass ]]
+function Harass()
 	if Mode() == "Harass" then
 		if (myHero.mana/myHero.maxMana >= ZiggsMenu.Harass.Mana:Value() /100) then
-
-			-- [[ Use Q ]]
-			if ZiggsMenu.Harass.Q:Value() and Ready(_Q) and ValidTarget(target, 850) then
-				local QPred = GetPrediction(target, ZiggsQ)
-				if QPred.hitChance > 0.2 then
-					CastSkillShot(_Q, QPred.castPos)
-				end
+-- 			[[ Use Q ]]
+			if ZiggsMenu.Harass.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then
+				ZiggsQ()
 			end
-
-			-- [[ Use E ]]
-			if ZiggsMenu.Harass.E:Value() and Ready(_E) and ValidTarget(target, 900) then
-				local EPred = GetCircularAOEPrediction(target, ZiggsE)
-				if EPred.hitChance > 0.2 then
-					CastSkillShot(_E, EPred.castPos)
-				end
+-- 			[[ Use E ]]
+			if ZiggsMenu.Harass.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
+				ZiggsE()
 			end
 		end
 	end
-
+end
+--          [[ LaneClear ]]
+function Farm()
 	if Mode() == "LaneClear" then
-		if (myHero.mana/myHero.maxMana >= ZiggsMenu.Farm.Mana:Value() /100) then
-			
-			-- [[ Lane ]]
+		if (myHero.mana/myHero.maxMana >= ZiggsMenu.Farm.Mana:Value() /100) then		
+-- 			[[ Lane ]]
 			for _, minion in pairs(minionManager.objects) do
 				if GetTeam(minion) == MINION_ENEMY then
-					if ZiggsMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(minion, 800) then
-						CastSkillShot(_Q, minion)
+-- 					[[ Use Q ]]
+					if ZiggsMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(minion, Spells.Q.range) then
+							CastSkillShot(_Q, minion)
+					    end
+-- 					[[ Use E ]]
+					if ZiggsMenu.Farm.E:Value() and Ready(_E) and ValidTarget(minion, Spells.E.range) then
+							CastSkillShot(_E, minion)
+						end	
 					end
-				end
-			end
-			for _, minion in pairs(minionManager.objects) do
-				if GetTeam(minion) == MINION_ENEMY then
-					if ZiggsMenu.Farm.E:Value() and Ready(_E) and ValidTarget(minion, 800) then
-						CastSkillShot(_E, minion)
-					end
-				end
-			end
-
-			-- [[ Jungle ]]
+				end	
+-- 			[[ Jungle ]]
 			for _, mob in pairs(minionManager.objects) do
 				if GetTeam(mob) == MINION_JUNGLE then
-					if ZiggsMenu.JG.Q:Value() and Ready(_Q) and ValidTarget(mob, 800) then
-						CastSkillShot(_Q, mob)
-					end
-				end
-			end
-
-			for _, mob in pairs(minionManager.objects) do
-				if GetTeam(mob) == MINION_JUNGLE then
-					if ZiggsMenu.JG.E:Value() and Ready(_E) and ValidTarget(mob, 800) then
-						CastSkillShot(_E, mob)
+-- 					[[ Use Q ]]
+					if ZiggsMenu.JG.Q:Value() and Ready(_Q) and ValidTarget(mob, Spells.Q.range) then
+							CastSkillShot(_Q, mob)
+					    end
+-- 					[[ Use E ]]
+					if ZiggsMenu.JG.E:Value() and Ready(_E) and ValidTarget(mob, Spells.E.range) then
+							CastSkillShot(_E, mob)
+						end	
 					end
 				end
 			end
 		end
 	end
-	
-	-- [[ KillSteal ]]
+--          [[ KillSteal ]]
+function KS()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		-- Q
-		if ZiggsMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, 850) then
+--		[[ Use Q ]]
+		if ZiggsMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
 			if GetCurrentHP(enemy) < getdmg("Q", enemy, myHero) then
-				local QPred = GetPrediction(target, ZiggsQ)
-				if QPred.hitChance > 0.8  then
-					CastSkillShot(_Q, QPred.castPos)
+					ZiggsQ()
 				end
 			end
-		end
-
-		-- E
-		if ZiggsMenu.Ks.E:Value() and Ready(_E) and ValidTarget(enemy, 900) then
+--		[[ Use E ]]
+		if ZiggsMenu.Ks.E:Value() and Ready(_E) and ValidTarget(enemy, Spells.E.range) then
 			if GetCurrentHP(enemy) < getdmg("E", enemy, myHero) then
-				local EPred = GetCircularAOEPrediction(target, ZiggsE)
-				if EPred.hitChance > 0.8 then
-					CastSkillShot(_E, EPred.castPos)
+					ZiggsE()
 				end
 			end
-		end
-
-		-- R
-		if ZiggsMenu.Ks.R:Value() and Ready(_R) and ValidTarget(enemy, 5000) then
+--		[[ Use R ]]
+		if ZiggsMenu.Ks.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
 			if GetCurrentHP(enemy) < getdmg("R", enemy, myHero) then
-				local RPred = GetCircularAOEPrediction(target,ZiggsR)
-				if RPred.hitChance > 0.8 then
-					CastSkillShot(_R, RPred.castPos)
+					ZiggsR()
 				end
 			end
 		end
 	end
-end)
-       
-
-
 --          [[ Drawings ]]
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
-		-- [[ Draw Q ]]
-	if ZiggsMenu.Draw.Q:Value() then DrawCircle(pos, 850, 1, 25, GoS.Red) end
-		-- [[ Draw W ]]
-	if ZiggsMenu.Draw.W:Value() then DrawCircle(pos, 1000, 1, 25, GoS.Blue) end
-		-- [[ Draw E ]]
-	if ZiggsMenu.Draw.E:Value() then DrawCircle(pos, 900, 1, 25, GoS.Green) end
+--  [[ Draw Q ]]
+	if ZiggsMenu.Draw.Q:Value() then DrawCircle(pos, Spells.Q.range, 0, 25, GoS.Red) end
+--  [[ Draw W ]]
+	if ZiggsMenu.Draw.W:Value() then DrawCircle(pos, Spells.W.range, 0, 25, GoS.Blue) end
+--  [[ Draw E ]]
+	if ZiggsMenu.Draw.E:Value() then DrawCircle(pos, Spells.E.range, 0, 25, GoS.Green) end
 end)	

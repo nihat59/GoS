@@ -203,9 +203,9 @@ function KS()
 OnDraw(function(myHero)
 	local pos = GetOrigin(myHero)
 --  [[ Draw Q ]]
-	if LuxMenu.Draw.Q:Value() then DrawCircle(pos, 1175, 0, 25, GoS.Red) end
+	if LuxMenu.Draw.Q:Value() then DrawCircle(pos, Spells.Q.range, 0, 25, GoS.Red) end
 --  [[ Draw W ]]
-	if LuxMenu.Draw.W:Value() then DrawCircle(pos, 1075, 0, 25, GoS.Blue) end
+	if LuxMenu.Draw.W:Value() then DrawCircle(pos, Spells.W.range, 0, 25, GoS.Blue) end
 --  [[ Draw E ]]
-	if LuxMenu.Draw.E:Value() then DrawCircle(pos, 1100, 0, 25, GoS.Green) end
+	if LuxMenu.Draw.E:Value() then DrawCircle(pos, Spells.E.range, 0, 25, GoS.Green) end
 end)		
