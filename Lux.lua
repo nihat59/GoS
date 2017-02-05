@@ -83,7 +83,7 @@ OnTick(function()
 --          [[ LuxQ ]]
 function LuxQ()	
 	local QPred = GetPrediction(target, Spells.Q)
-	if QPred.hitChance >0.3 then
+	if QPred.hitChance > 0.3 then
 		CastSkillShot(_Q, QPred.castPos)
 	end	
 end   
@@ -94,14 +94,14 @@ function LuxW()
 --          [[ LuxE ]]
 function LuxE()
 	local EPred = GetCircularAOEPrediction(target, Spells.E)
-	if EPred.hitChance >0.3 then
+	if EPred.hitChance > 0.3 then
 		CastSkillShot(_E, EPred.castPos)
 	end	
 end  
 --          [[ LuxR ]]
 function LuxR()
 	local RPred = GetPrediction(target, Spells.R)
-	if RPred.hitChance >0.8 then
+	if RPred.hitChance > 0.8 then
 		CastSkillShot(_R, RPred.castPos)
 	end	
 end  
