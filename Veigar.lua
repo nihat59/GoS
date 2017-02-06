@@ -1,7 +1,7 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Veigar" then return end
 --          [[ Updater ]]
-local ver = "0.02"
+local ver = "0.03"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
@@ -86,7 +86,7 @@ function VeigarQ()
 end   
 --          [[ VeigarW ]]
 function VeigarW()
-	local WPred = GetCircularAOEPrediction(target, Spells.E)
+	local WPred = GetCircularAOEPrediction(target, Spells.W)
 	if WPred.hitChance > 0.3 then
 		CastSkillShot(_W, WPred.castPos)
 	end	
