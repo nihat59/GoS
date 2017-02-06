@@ -1,7 +1,7 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Veigar" then return end
 --          [[ Updater ]]
-local ver = "0.01"
+local ver = "0.02"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
@@ -31,6 +31,7 @@ VeigarMenu.Harass:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 --          [[ LaneClear ]]
 VeigarMenu:SubMenu("Farm", "Farm Settings")
 VeigarMenu.Farm:Boolean("Q", "Use Q", true)
+VeigarMenu.Farm:Boolean("QL", "Use Q Only LastHit", true)
 VeigarMenu.Farm:Boolean("W", "Use W", false)
 VeigarMenu.Farm:Slider("Mana", "Min. Mana", 0, 0, 100, 1)
 --          [[ Jungle ]]
@@ -144,12 +145,16 @@ function Farm()
 -- 			[[ Lane ]]
 			for _, minion in pairs(minionManager.objects) do
 				if GetTeam(minion) == MINION_ENEMY then
--- 					[[ Use Q ]]
-					if VeigarMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(minion, Spells.Q.range) then
+-- 					[[ Use Q LastHit]]
+					if VeigarMenu.Farm.QL:Value() and Ready(_Q) and ValidTarget(minion, Spells.Q.range) then
 						if GetCurrentHP(minion) < getdmg("Q", minion, myHero) then
 							CastSkillShot(_Q, minion)
 					    end
-					end    
+					end 
+-- 					[[ Use Q ]]
+					if VeigarMenu.Farm.Q:Value() and Ready(_Q) and ValidTarget(minion, Spells.Q.range) then
+							CastSkillShot(_Q, minion)
+					    end
 -- 					[[ Use W ]]
 					if VeigarMenu.Farm.W:Value() and Ready(_W) and ValidTarget(minion, Spells.W.range) then
 							CastSkillShot(_W, minion)
