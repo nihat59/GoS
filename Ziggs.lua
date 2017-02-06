@@ -23,7 +23,7 @@ ZiggsMenu.Combo:Boolean("Q", "Use Q", true)
 ZiggsMenu.Combo:Boolean("W", "Use W", true)
 ZiggsMenu.Combo:Boolean("E", "Use E", true)
 ZiggsMenu.Combo:Boolean("R", "Use R", true)
-ZiggsMenu.Harass:Slider("RC", "R Count", 3, 0, 5, 1)
+ZiggsMenu.Combo:Slider("RC", "R Count", 3, 0, 5, 1)
 --          [[ Harass ]]
 ZiggsMenu:SubMenu("Harass", "Harass Settings")
 ZiggsMenu.Harass:Boolean("Q", "Use Q", true)
@@ -53,7 +53,7 @@ local Spells = {
  Q = {range = 1100, delay = 0.25, speed = 1700, width = 30},
  W = {range = 1000, delay = 0.25, speed = 1300, width = 100},
  E = {range = 900 , delay = 0.25, speed = 1300, radius = 100},
- R = {range = 5000, delay = 0.25, speed = math.huge, width = 550}
+ R = {range = 5000, delay = 1.25, speed = math.huge, width = 550}
 }
 --          [[ Orbwalker ]]
 function Mode()
