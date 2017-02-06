@@ -22,8 +22,6 @@ MaokaiMenu:SubMenu("Combo", "Combo Settings")
 MaokaiMenu.Combo:Boolean("Q", "Use Q", true)
 MaokaiMenu.Combo:Boolean("W", "Use W", true)
 MaokaiMenu.Combo:Boolean("E", "Use E", true)
-MaokaiMenu.Combo:Boolean("R", "Use R", true)
-MaokaiMenu.Harass:Slider("RC", "R Count", 2, 0, 5, 1)
 --          [[ Harass ]]
 MaokaiMenu:SubMenu("Harass", "Harass Settings")
 MaokaiMenu.Harass:Boolean("Q", "Use Q", true)
@@ -37,12 +35,13 @@ MaokaiMenu.Farm:Slider("Mana", "Min. Mana", 40, 0, 100, 1)
 --          [[ Jungle ]]
 MaokaiMenu:SubMenu("JG", "Jungle Settings")
 MaokaiMenu.JG:Boolean("Q", "Use Q", true)
+MaokaiMenu.JG:Boolean("W", "Use W", true)
 MaokaiMenu.JG:Boolean("E", "Use E", true)
 --          [[ KillSteal ]]
-MaokaiMenu:SubMenu("Ks", "KillSteal Settings")
-MaokaiMenu.Ks:Boolean("Q", "Use Q", true)
-MaokaiMenu.Ks:Boolean("E", "Use E", true)
-MaokaiMenu.Ks:Boolean("R", "Use R", true)
+MaokaiMenu:SubMenu("KS", "KillSteal Settings")
+MaokaiMenu.KS:Boolean("Q", "Use Q", true)
+MaokaiMenu.KS:Boolean("W", "Use W", true)
+MaokaiMenu.KS:Boolean("E", "Use E", true)
 --          [[ Draw ]]
 MaokaiMenu:SubMenu("Draw", "Drawing Settings")
 MaokaiMenu.Draw:Boolean("Q", "Draw Q", false)
@@ -52,8 +51,8 @@ MaokaiMenu.Draw:Boolean("E", "Draw E", false)
 local Spells = {
  Q = {range = 600, delay = 0.25, speed = 1700, width = 100},
  W = {range = 525, delay = 0.25, speed = 1300, width = 10},
- E = {range = 110 , delay = 0.25, speed = 1300, radius = 175},
- R = {range = 475, delay = 0.25, speed = math.huge, width = 200}
+ E = {range = 1100 , delay = 1.75, speed = 1300, radius = 250},
+ R = {range = 475}
 }
 --          [[ Orbwalker ]]
 function Mode()
@@ -86,38 +85,38 @@ function MaokaiQ()
 end   
 --          [[ MaokaiW ]]
 function MaokaiW()
-		CastSkillShot(_W, WPred.castPos)
+		CastTargetSpell(target, _W)
 	end	
 --          [[ MaokaiE ]]
 function MaokaiE()
 	local EPred = GetCircularAOEPrediction(target, Spells.E)
-	if EPred.hitChance > 0.3 then
+	if EPred.hitChance > 0.5 then
 		CastSkillShot(_E, EPred.castPos)
 	end	
 end  
 --          [[ MaokaiR ]]
-function MaokaiR()
-		CastSkillShot(_R, RPred.castPos)
-	end	
+--[[function MaokaiR()
+		CastSpell(_R)
+	end]]
 --          [[ Combo ]]
 function Combo()
 	if Mode() == "Combo" then
--- 		[[ Use Q ]]
-		if MaokaiMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then
-			MaokaiQ()
+-- 		[[ Use E ]]
+		if MaokaiMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
+			MaokaiE()
 			end
 -- 		[[ Use W ]]
 		if MaokaiMenu.Combo.W:Value() and Ready(_W) and ValidTarget(target, Spells.W.range) then
 			MaokaiW()
 			end
--- 		[[ Use E ]]
-		if MaokaiMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
-			MaokaiE()
+-- 		[[ Use Q ]]
+		if MaokaiMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then
+			MaokaiQ()
 			end
 -- 		[[ Use R Count ]]
-		if MaokaiMenu.Combo.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) and EnemiesAround(enemy, 100) >= MaokaiMenu.Combo.RC:Value() then
+		--[[if MaokaiMenu.Combo.R:Value() and Ready(_R) and ValidTarget(target, GetRange(myHero) + GetHitBox(target)) then
 			MaokaiR()
-			end
+			end]]
 		end
 	end
 --          [[ Harass ]]
@@ -159,6 +158,10 @@ function Farm()
 					if MaokaiMenu.JG.Q:Value() and Ready(_Q) and ValidTarget(mob, Spells.Q.range) then
 							CastSkillShot(_Q, mob)
 					    end
+-- 					[[ Use W ]]
+					if MaokaiMenu.JG.W:Value() and Ready(_W) and ValidTarget(mob, Spells.W.range) then
+							CastTargetSpell(mob, _W)
+					    end
 -- 					[[ Use E ]]
 					if MaokaiMenu.JG.E:Value() and Ready(_E) and ValidTarget(mob, Spells.E.range) then
 							CastSkillShot(_E, mob)
@@ -172,19 +175,19 @@ function Farm()
 function KS()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 --		[[ Use Q ]]
-		if MaokaiMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
+		if MaokaiMenu.KS.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
 			if GetCurrentHP(enemy) < getdmg("Q", enemy, myHero) then
 					MaokaiQ()
 				end
 			end
 --		[[ Use W ]]
-		if MaokaiMenu.Ks.W:Value() and Ready(_W) and ValidTarget(enemy, Spells.W.range) then
+		if MaokaiMenu.KS.W:Value() and Ready(_W) and ValidTarget(enemy, Spells.W.range) then
 			if GetCurrentHP(enemy) < getdmg("W", enemy, myHero) then
 					MaokaiW()
 				end
 			end
 --		[[ Use E ]]
-		if MaokaiMenu.Ks.E:Value() and Ready(_E) and ValidTarget(enemy, Spells.E.range) then
+		if MaokaiMenu.KS.E:Value() and Ready(_E) and ValidTarget(enemy, Spells.E.range) then
 			if GetCurrentHP(enemy) < getdmg("E", enemy, myHero) then
 					MaokaiE()
 				end
