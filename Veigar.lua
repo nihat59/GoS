@@ -86,7 +86,7 @@ end
 --          [[ VeigarW ]]
 function VeigarW()
 	local WPred = GetCircularAOEPrediction(target, Spells.E)
-	if QPred.hitChance > 0.3 then
+	if WPred.hitChance > 0.3 then
 		CastSkillShot(_W, WPred.castPos)
 	end	
 end	
