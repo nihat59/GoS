@@ -1,7 +1,7 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Ziggs" then return end
 --          [[ Updater ]]
-local ver = "0.02"
+local ver = "0.03"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
@@ -22,6 +22,8 @@ ZiggsMenu:SubMenu("Combo", "Combo Settings")
 ZiggsMenu.Combo:Boolean("Q", "Use Q", true)
 ZiggsMenu.Combo:Boolean("W", "Use W", true)
 ZiggsMenu.Combo:Boolean("E", "Use E", true)
+ZiggsMenu.Combo:Boolean("R", "Use R", true)
+ZiggsMenu.Combo:Slider("RC", "R Count", 2, 0, 5, 1)
 --          [[ Harass ]]
 ZiggsMenu:SubMenu("Harass", "Harass Settings")
 ZiggsMenu.Harass:Boolean("Q", "Use Q", true)
@@ -50,7 +52,7 @@ ZiggsMenu.Draw:Boolean("E", "Draw E", false)
 local Spells = {
  Q = {range = 1100, delay = 0.25, speed = 1700, width = 30},
  W = {range = 1000, delay = 0.25, speed = 1300, width = 100},
- E = {range = 900 , delay = 0.25, speed = 1300, radius = 100},
+ E = {range = 900 , delay = 0.25, speed = math.huge, radius = 100},
  R = {range = 5000, delay = 1.25, speed = math.huge, width = 550}
 }
 --          [[ Orbwalker ]]
@@ -110,13 +112,17 @@ function Combo()
 		if ZiggsMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then
 			ZiggsQ()
 			end
+-- 		[[ Use E ]]
+		if ZiggsMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
+			ZiggsE()
+			end
 -- 		[[ Use W ]]
 		if ZiggsMenu.Combo.W:Value() and Ready(_W) and ValidTarget(target, Spells.W.range) then
 			ZiggsW()
 			end
--- 		[[ Use E ]]
-		if ZiggsMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
-			ZiggsE()
+-- 		[[ Use R ]]
+		if ZiggsMenu.Combo.R:Value() and Ready(_R) and ValidTarget(target, Spells.R.range) and EnemiesAround(GetOrigin(myHero), 700) >= ZiggsMenu.Combo.RC:Value() then
+			ZiggsR()
 			end
 		end
 	end

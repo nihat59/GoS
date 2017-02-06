@@ -70,6 +70,7 @@ function Mode()
 end
 --          [[ Tick ]]
 OnTick(function()
+	--[[VengefulMaelstrom]]
 	KS()
 	target = GetCurrentTarget()
 	         Combo()
@@ -95,28 +96,28 @@ function MaokaiE()
 	end	
 end  
 --          [[ MaokaiR ]]
---[[function MaokaiR()
+function MaokaiR()
 		CastSpell(_R)
-	end]]
+	end
 --          [[ Combo ]]
 function Combo()
 	if Mode() == "Combo" then
 -- 		[[ Use E ]]
 		if MaokaiMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
-			MaokaiE()
+			MaokaiE() 
 			end
 -- 		[[ Use W ]]
 		if MaokaiMenu.Combo.W:Value() and Ready(_W) and ValidTarget(target, Spells.W.range) then
 			MaokaiW()
 			end
 -- 		[[ Use Q ]]
-		if MaokaiMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then
+		if MaokaiMenu.Combo.Q:Value() and Ready(_Q) and ValidTarget(target, Spells.Q.range) then 
 			MaokaiQ()
-			end
--- 		[[ Use R Count ]]
-		--[[if MaokaiMenu.Combo.R:Value() and Ready(_R) and ValidTarget(target, GetRange(myHero) + GetHitBox(target)) then
-			MaokaiR()
-			end]]
+			end 
+-- 		[[ Use R Count ]] 
+		--if MaokaiMenu.Combo.R:Value() and Ready(_R) and ValidTarget(target, Spells.R.range) and EnemiesAround(GetOrigin(myHero), Spells.R.range) >= MaokaiMenu.Combo.RC:Value() then
+			--MaokaiR()
+			--end
 		end
 	end
 --          [[ Harass ]]
