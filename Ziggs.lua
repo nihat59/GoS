@@ -1,7 +1,7 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Ziggs" then return end
 --          [[ Updater ]]
-local ver = "0.01"
+local ver = "0.02"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
@@ -37,10 +37,10 @@ ZiggsMenu:SubMenu("JG", "Jungle Settings")
 ZiggsMenu.JG:Boolean("Q", "Use Q", true)
 ZiggsMenu.JG:Boolean("E", "Use E", true)
 --          [[ KillSteal ]]
-ZiggsMenu:SubMenu("Ks", "KillSteal Settings")
-ZiggsMenu.Ks:Boolean("Q", "Use Q", true)
-ZiggsMenu.Ks:Boolean("E", "Use E", true)
-ZiggsMenu.Ks:Boolean("R", "Use R", true)
+ZiggsMenu:SubMenu("KS", "KillSteal Settings")
+ZiggsMenu.KS:Boolean("Q", "Use Q", true)
+ZiggsMenu.KS:Boolean("E", "Use E", true)
+ZiggsMenu.KS:Boolean("R", "Use R", true)
 --          [[ Draw ]]
 ZiggsMenu:SubMenu("Draw", "Drawing Settings")
 ZiggsMenu.Draw:Boolean("Q", "Draw Q", false)
@@ -172,19 +172,19 @@ function Farm()
 function KS()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 --		[[ Use Q ]]
-		if ZiggsMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
+		if ZiggsMenu.KS.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
 			if GetCurrentHP(enemy) < getdmg("Q", enemy, myHero) then
 					ZiggsQ()
 				end
 			end
 --		[[ Use E ]]
-		if ZiggsMenu.Ks.E:Value() and Ready(_E) and ValidTarget(enemy, Spells.E.range) then
+		if ZiggsMenu.KS.E:Value() and Ready(_E) and ValidTarget(enemy, Spells.E.range) then
 			if GetCurrentHP(enemy) < getdmg("E", enemy, myHero) then
 					ZiggsE()
 				end
 			end
 --		[[ Use R ]]
-		if ZiggsMenu.Ks.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
+		if ZiggsMenu.KS.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
 			if GetCurrentHP(enemy) < getdmg("R", enemy, myHero) then
 					ZiggsR()
 				end

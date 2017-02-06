@@ -1,7 +1,7 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Lux" then return end
 --          [[ Updater ]]
-local ver = "0.01"
+local ver = "0.02"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
@@ -40,10 +40,10 @@ LuxMenu:SubMenu("JG", "Jungle Settings")
 LuxMenu.JG:Boolean("Q", "Use Q", true)
 LuxMenu.JG:Boolean("E", "Use E", true)
 --          [[ KillSteal ]]
-LuxMenu:SubMenu("Ks", "KillSteal Settings")
-LuxMenu.Ks:Boolean("Q", "Use Q", true)
-LuxMenu.Ks:Boolean("E", "Use E", true)
-LuxMenu.Ks:Boolean("R", "Use R", true)
+LuxMenu:SubMenu("KS", "KillSteal Settings")
+LuxMenu.KS:Boolean("Q", "Use Q", true)
+LuxMenu.KS:Boolean("E", "Use E", true)
+LuxMenu.KS:Boolean("R", "Use R", true)
 --          [[ Draw ]]
 LuxMenu:SubMenu("Draw", "Drawing Settings")
 LuxMenu.Draw:Boolean("Q", "Draw Q", false)
@@ -176,21 +176,21 @@ function Farm()
 function KS()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 -- 		[[ Use Q ]]
-		if LuxMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
+		if LuxMenu.KS.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
 			if GetCurrentHP(enemy) < getdmg("Q", enemy, myHero) then
 				LuxQ()
 				end
 			end
 
 -- 		[[ Use E ]]
-		if LuxMenu.Ks.E:Value() and Ready(_E) and ValidTarget(enemy, Spells.E.range) then
+		if LuxMenu.KS.E:Value() and Ready(_E) and ValidTarget(enemy, Spells.E.range) then
 			if GetCurrentHP(enemy) < getdmg("E", enemy, myHero) then
 				LuxE()
 				end
 			end
 
 --		[[ Use R ]]
-		if LuxMenu.Ks.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
+		if LuxMenu.KS.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
 			if GetCurrentHP(enemy) < getdmg("R", enemy, myHero) then
 					LuxR()
 				end

@@ -1,7 +1,7 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Veigar" then return end
 --          [[ Updater ]]
-local ver = "0.03"
+local ver = "0.04"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
@@ -39,9 +39,9 @@ VeigarMenu:SubMenu("JG", "Jungle Settings")
 VeigarMenu.JG:Boolean("Q", "Use Q", true)
 VeigarMenu.JG:Boolean("W", "Use W", true)
 --          [[ KillSteal ]]
-VeigarMenu:SubMenu("Ks", "KillSteal Settings")
-VeigarMenu.Ks:Boolean("Q", "Use Q", true)
-VeigarMenu.Ks:Boolean("R", "Use R", true)
+VeigarMenu:SubMenu("KS", "KillSteal Settings")
+VeigarMenu.KS:Boolean("Q", "Use Q", true)
+VeigarMenu.KS:Boolean("R", "Use R", true)
 --          [[ Draw ]]
 VeigarMenu:SubMenu("Draw", "Drawing Settings")
 VeigarMenu.Draw:Boolean("Q", "Draw Q", false)
@@ -181,13 +181,13 @@ function Farm()
 function KS()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 -- 		[[ Use Q ]]
-		if VeigarMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
+		if VeigarMenu.KS.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
 			if GetCurrentHP(enemy) < getdmg("Q", enemy, myHero) then
 				VeigarQ()
 				end
 			end
 -- 		[[ Use R ]]
-		if VeigarMenu.Ks.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
+		if VeigarMenu.KS.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
 			if GetCurrentHP(enemy) < getdmg("R", enemy, myHero) then
 				VeigarR()
 			end

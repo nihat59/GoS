@@ -1,7 +1,7 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Annie" then return end
 --          [[ Updater ]]
-local ver = "0.01"
+local ver = "0.02"
 
 function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
@@ -38,10 +38,10 @@ AnnieMenu:SubMenu("JG", "Jungle Settings")
 AnnieMenu.JG:Boolean("Q", "Use Q", true)
 AnnieMenu.JG:Boolean("W", "Use W", true)
 --          [[ KillSteal ]]
-AnnieMenu:SubMenu("Ks", "KillSteal Settings")
-AnnieMenu.Ks:Boolean("Q", "Use Q", true)
-AnnieMenu.Ks:Boolean("W", "Use W", true)
-AnnieMenu.Ks:Boolean("R", "Use R", true)
+AnnieMenu:SubMenu("KS", "KillSteal Settings")
+AnnieMenu.KS:Boolean("Q", "Use Q", true)
+AnnieMenu.KS:Boolean("W", "Use W", true)
+AnnieMenu.KS:Boolean("R", "Use R", true)
 --          [[ Misc ]]
 --[[AnnieMenu:SubMenu("Misc", "Misc Settings")
 AnnieMenu.Misc:Boolean("E", "Auto E", true)]]
@@ -177,13 +177,13 @@ function Farm()
 function KS()
 	for _, enemy in pairs(GetEnemyHeroes()) do
 -- 	    [[ Use Q ]]
-		if AnnieMenu.Ks.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
+		if AnnieMenu.KS.Q:Value() and Ready(_Q) and ValidTarget(enemy, Spells.Q.range) then
 			if GetCurrentHP(enemy) < getdmg("Q", enemy, myHero) then
 					AnnieQ()
 				end
 			end
 -- 	    [[ Use R ]]
-		if AnnieMenu.Ks.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
+		if AnnieMenu.KS.R:Value() and Ready(_R) and ValidTarget(enemy, Spells.R.range) then
 			if GetCurrentHP(enemy) < getdmg("R", enemy, myHero) then
 					AnnieR()
 				end
