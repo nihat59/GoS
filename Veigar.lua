@@ -1,19 +1,17 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Veigar" then return end
 --          [[ Updater ]]
-local Ver = "0.1"
+local ver = "0.01"
 
---[[local function AutoUpdate(data)
+function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
-        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Veigar.lua", SCRIPT_PATH .. "Veigar.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
-    else
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Veigar]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+        print("New version found! " .. data)
+        print("Downloading update, please wait...")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Veigar.lua", SCRIPT_PATH .. "Veigar.lua", function() print("Update Complete, please 2x F6!") return end)
     end
 end
 
-GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Veigar.version", AutoUpdate)]]
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Veigar.version", AutoUpdate)
 --          [[ Lib ]]
 require ("OpenPredict")
 require ("DamageLib")
@@ -23,6 +21,7 @@ local VeigarMenu = Menu("Veigar", "Veigar")
 VeigarMenu:SubMenu("Combo", "Combo Settings")
 VeigarMenu.Combo:Boolean("Q", "Use Q", true)
 VeigarMenu.Combo:Boolean("W", "Use W", true)
+VeigarMenu.Combo:Boolean("WS", "Use W Only Stun", true)
 VeigarMenu.Combo:Boolean("E", "Use E", true)
 --          [[ Harass ]]
 VeigarMenu:SubMenu("Harass", "Harass Settings")
@@ -87,8 +86,10 @@ end
 --          [[ VeigarW ]]
 function VeigarW()
 	local WPred = GetCircularAOEPrediction(target, Spells.E)
+	if QPred.hitChance > 0.3 then
 		CastSkillShot(_W, WPred.castPos)
 	end	
+end	
 --          [[ VeigarE ]]
 function VeigarE()
 	local EPred = GetCircularAOEPrediction(target, Spells.E)
@@ -108,7 +109,11 @@ function Combo()
 			VeigarQ()
 			end
 --		[[ Use W ]]
-		if VeigarMenu.Combo.W:Value() and ValidTarget(target, GetCastRange(myHero, _W)) and GotBuff(target, "veigareventhorizonstun") > 0  then
+		if VeigarMenu.Combo.W:Value() and Ready(_W) and ValidTarget(target, Spells.W.range) then
+			VeigarW()
+			end
+--		[[ Use W Only Stun ]]
+		if VeigarMenu.Combo.WS:Value() and ValidTarget(target, GetCastRange(myHero, _W)) and GotBuff(target, "veigareventhorizonstun") > 0  then
 			VeigarW()
 			end
 --		[[ Use E ]]

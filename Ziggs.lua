@@ -1,19 +1,17 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Ziggs" then return end
 --          [[ Updater ]]
-local Ver = "0.1"
+local ver = "0.01"
 
---[[local function AutoUpdate(data)
+function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
-        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Ziggs.lua", SCRIPT_PATH .. "Ziggs.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
-    else
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Ziggs]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+        print("New version found! " .. data)
+        print("Downloading update, please wait...")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Ziggs.lua", SCRIPT_PATH .. "Ziggs.lua", function() print("Update Complete, please 2x F6!") return end)
     end
 end
 
-GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Ziggs.version", AutoUpdate)]]
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Ziggs.version", AutoUpdate)
 --          [[ Lib ]]
 require ("OpenPredict")
 require ("DamageLib")
@@ -24,6 +22,8 @@ ZiggsMenu:SubMenu("Combo", "Combo Settings")
 ZiggsMenu.Combo:Boolean("Q", "Use Q", true)
 ZiggsMenu.Combo:Boolean("W", "Use W", true)
 ZiggsMenu.Combo:Boolean("E", "Use E", true)
+ZiggsMenu.Combo:Boolean("R", "Use R", true)
+ZiggsMenu.Harass:Slider("RC", "R Count", 3, 0, 5, 1)
 --          [[ Harass ]]
 ZiggsMenu:SubMenu("Harass", "Harass Settings")
 ZiggsMenu.Harass:Boolean("Q", "Use Q", true)
@@ -119,6 +119,10 @@ function Combo()
 -- 		[[ Use E ]]
 		if ZiggsMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
 			ZiggsE()
+			end
+-- 		[[ Use R Count ]]
+		if ZiggsMenu.Combo.R:Value() and Ready(_R) and ValidTarget(enemy, 1000) and EnemiesAround(enemy, 400) >= ZiggsMenu.Combo.RC:Value() then
+			ZiggsR()
 			end
 		end
 	end

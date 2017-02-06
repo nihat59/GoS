@@ -1,19 +1,17 @@
 --          [[ Champion ]]
 if GetObjectName(GetMyHero()) ~= "Annie" then return end
 --          [[ Updater ]]
-local Ver = "0.1"
+local ver = "0.01"
 
---[[local function AutoUpdate(data)
+function AutoUpdate(data)
     if tonumber(data) > tonumber(ver) then
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> New version found!</font> " .. data)
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> Downloading update, please wait...</font>")
-        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Annie.lua", SCRIPT_PATH .. "Annie.lua", function() PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> Update Complete, please 2x F6!</font>") return end)  
-    else
-        PrintChat("<font color=\"#1E90FF\"><b>[Jani]</b></font><font color=\"#FFA500\"><b>[Annie]</b></font><font color=\"#E8E8E8\"> No updates found!</font>")
+        print("New version found! " .. data)
+        print("Downloading update, please wait...")
+        DownloadFileAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Annie.lua", SCRIPT_PATH .. "Annie.lua", function() print("Update Complete, please 2x F6!") return end)
     end
 end
 
-GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Annie.version", AutoUpdate)]]
+GetWebResultAsync("https://raw.githubusercontent.com/janilssonn/GoS/master/Version/Annie.version", AutoUpdate)
 --          [[ Lib ]]
 require ("OpenPredict")
 require ("DamageLib")
