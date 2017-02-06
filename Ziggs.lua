@@ -22,8 +22,6 @@ ZiggsMenu:SubMenu("Combo", "Combo Settings")
 ZiggsMenu.Combo:Boolean("Q", "Use Q", true)
 ZiggsMenu.Combo:Boolean("W", "Use W", true)
 ZiggsMenu.Combo:Boolean("E", "Use E", true)
-ZiggsMenu.Combo:Boolean("R", "Use R", true)
-ZiggsMenu.Combo:Slider("RC", "R Count", 3, 0, 5, 1)
 --          [[ Harass ]]
 ZiggsMenu:SubMenu("Harass", "Harass Settings")
 ZiggsMenu.Harass:Boolean("Q", "Use Q", true)
@@ -119,10 +117,6 @@ function Combo()
 -- 		[[ Use E ]]
 		if ZiggsMenu.Combo.E:Value() and Ready(_E) and ValidTarget(target, Spells.E.range) then
 			ZiggsE()
-			end
--- 		[[ Use R Count ]]
-		if ZiggsMenu.Combo.R:Value() and Ready(_R) and ValidTarget(enemy, 1000) and EnemiesAround(enemy, 400) >= ZiggsMenu.Combo.RC:Value() then
-			ZiggsR()
 			end
 		end
 	end
