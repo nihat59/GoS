@@ -1,7 +1,7 @@
 local SLAIO,Stage = 0.02,"Jani"
 
 local SLSChamps = {	
-	["Jinx"] = true,
+	["Vayne"] = true,
 }
 
 local SLPatchnew = nil
@@ -455,6 +455,7 @@ Callback.Add("Tick", function()
 end)
 
 Callback.Add("Load", function()	
+--[[	Update() ]]
 	Init()
 	if SLSChamps[ChampName] and L.LC:Value() then
 		_G[ChampName]() 
@@ -556,252 +557,424 @@ end
 ---------------------------------------------------------------------------------------------
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
-class 'Jinx'
 
-function Jinx:__init()
 
+--[[
+ __      __                    
+ \ \    / /                    
+  \ \  / /_ _ _   _ _ __   ___ 
+   \ \/ / _` | | | | '_ \ / _ \
+    \  / (_| | |_| | | | |  __/
+     \/ \__,_|\__, |_| |_|\___|
+               __/ |           
+              |___/                       
+--]]
+
+class 'Vayne'
+
+function Vayne:__init()
 
 	Spell = {
-	[0] = { range = 25 * GetCastLevel(myHero,0) + 600 },
-	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
-	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false},
+	[0] = { range = 300 },
+	[1] = { range = 0 },
+	[2] = { delay = 0.25, speed = 2000, width = 1, range = 550 },
+	[3] = { range = 0 }
 	}
-	
 	
 	Dmg = {
-	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * 1.4, 0) end,
-	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) 
-	local dmg = 150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(GetMaxHP(unit)-GetCurrentHP(unit))*(.20+GetCastLevel(myHero,3)*.5)
-	return CalcDamage(myHero,unit, math.min(math.max(dmg*.1,dmg*GetDistance(GetOrigin(myHero), GetOrigin(unit))/1650),dmg), 0) end
+	[0] = function (unit) return CalcDamage(myHero, unit, 5 * GetCastLevel(myHero,0) + 25 + ((GetBaseDamage(myHero) + GetBonusDmg(myHero)) * .5), 0) end,
+	[1] = function (unit) return CalcDamage(myHero, unit, (1.5 * GetCastLevel(myHero,1) + 4.5) * (GetMaxHP(unit)/100) , 0) end,
+	[2] = function (unit) return CalcDamage(myHero, unit, 35 * GetCastLevel(myHero,2) + 15 + GetBonusDmg(myHero) * .5, 0) end,
+	[3] = function (unit) return CalcDamage(myHero, unit, 20 * GetCastLevel(myHero,3) + 10, 0) end,
 	}
 	
-	BM:Menu("C", "Combo")
-	BM.C:Menu("Q", "Q")
-	BM.C.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.C.Q:Boolean("enable", "Enable Q Combo", true)
-	BM.C:Boolean("W", "Use W", true)
-	BM.C:Boolean("E", "Use E", true)
+	BM:Menu("Q", "[Tumble] Q Settings")
+	BM.Q:DropDown("QM", "QMode", 1, {"AAReset", "W Proc"})
+	BM.Q:Boolean('C', 'Use in Combo', true)
+	BM.Q:Boolean('H', 'Use in Harass', true)
+	BM.Q:Boolean('JC', 'Use in JungleClear', true)
+	BM.Q:Boolean('LC', 'Use in LaneClear', false)
+	BM.Q:Info("q",'')
+	BM.Q:Boolean("TC", "Dont Tumble into turrets", true)
+	BM.Q:Info("",'')
+	BM.Q:Slider('MC', "Use in Combo if Mana > x", 0, 0, 100, 0)
+	BM.Q:Slider('MH', "Use in Harass if Mana > x", 50, 0, 100, 0)
+	BM.Q:Slider('MJC', "Use in JungleClear if Mana > x", 10, 0, 100, 0)
+	BM.Q:Slider('MLC', "Use in LaneClear if Mana > x", 50, 0, 100, 0)
 	
-	BM:Menu("H", "Harass")
-	BM.H:Menu("Q", "Q")
-	BM.H.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.H.Q:Boolean("enable", "Enable Q Harass", true)
-	BM.H:Boolean("W", "Use W", true)
-	BM.H:Boolean("E", "Use E", true)
+	BM:Menu("E", "[Condemn] E Settings")
+	BM.E:Boolean('C', 'Use in Combo', true)
+	BM.E:Boolean('H', 'Use in Harass', true)
+	BM.E:Boolean('JC', 'Use in JungleClear', true)
+	BM.E:Info("q",'')
+	BM.E:Boolean("EAE", "Enable Auto E", true)
+	BM.E:Slider("DTE", "Distance to Enemy for auto E", 50, 0, 100, 5)
+	BM.E:Boolean("KS", "Enable KS", true)
+	BM.E:Info("",'')
+	BM.E:Slider("a", "accuracy", 30, 1, 50, 5)
+	BM.E:Slider("pd", "Push distance", 480, 1, 550, 5)	
+	BM.E:Slider('MC', "Use in Combo if Mana > x", 0, 0, 100, 0)
+	BM.E:Slider('MH', "Use in Harass if Mana > x", 50, 0, 100, 0)
+	BM.E:Slider('MJC', "Use in JungleClear if Mana > x", 10, 0, 100, 0)
+
 	
-	BM:Menu("LC", "LaneClear")
-	BM.LC:Menu("Q", "Q")
-	BM.LC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.LC.Q:Boolean("enable", "Enable Q Laneclear", true)
-	BM.LC:Boolean("W", "Use W", false)
-	
-	BM:Menu("JC", "JungleClear")
-	BM.JC:Menu("Q", "Q")
-	BM.JC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.JC.Q:Boolean("enable", "Enable Q Jungleclear", true)
-	BM.JC:Boolean("W", "Use W", false)
-	
-	BM:Menu("LH", "LastHit")
-	BM.LH:Boolean("UMinig", "Use only Minigun", true)
-	
-	BM:Menu("KS", "Killsteal")
-	BM.KS:Boolean("Enable", "Enable Killsteal", true)
-	BM.KS:Boolean("W", "Use W", true)
-	BM.KS:Boolean("E", "Use E", true)
-	BM.KS:Boolean("R", "Enable R KS", true)
-	BM.KS:Slider("mDTT", "R - max Distance to target", 3000, 675, 20000, 10)
-	BM.KS:Slider("DTT", "R - min Distance to target", 1000, 675, 20000, 10)
+	BM:Menu("R", "[Final Hour] R Settings")
+	BM.R:Boolean('C', 'Use Final Hour in Combo', true)
+	BM.R:Boolean('H', 'Use Final Hour in Harass', false)
+	BM.R:Info("q",'')
+	BM.R:Boolean("SI", "Stay Invisble", true)
+	BM.R:Boolean("DIT", "Draw invisible timer", true)
+	BM.R:Info("", "")
+	BM.R:Slider("EAR", "EnemiesAround > x", 1, 1, 5, 1)
+	BM.R:Slider("AAR", "AlliesAround > x", 0, 0, 5, 1)
+	BM.R:Slider("MHP", "My Hero HP < x", 100, 0, 100, 5)
+	BM.R:Slider("EHP", "Enemy HP < x", 100, 0, 100, 5)
+	BM.R:Slider('MC', "Use in Combo if Mana > x", 0, 0, 100, 0)
+	BM.R:Slider('MH', "Use in Harass if Mana > x", 50, 0, 100, 0)
 	
 	BM:Menu("TS", "TargetSelector")
 	ts = SLTS("AD",BM.TS,false)
-	
-	BM:Menu("p", "Prediction")
+	self.wstacks = {}
+	self.invtime = 0
+	self.R = false
+	self.QPos = nil
+	self.QPos2 = nil
+	self.QPos3 = nil
+	self.TumbleEndPos = nil
+	self.TumbleStartPos = nil
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
-	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
-	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
+	Callback.Add("ProcessSpellComplete", function(un, s) self:AAReset(un, s) end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdB(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemB(u,b) end)
+	Callback.Add("Draw", function() self:Drawi() end)
+	AntiChannel()
+	AntiGapCloser()
+	DelayAction( function ()
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
+	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
+	end,.001)
+end
 
-	for i = 1,3 do
-		PredMenu(BM.p, i)	
+function Vayne:AntiChannel(unit,range)
+	if BM.AC.E:Value() and range < Spell[2].range and SReady[2] then
+		CastTargetSpell(unit,2)
 	end
 end
 
-function Jinx:UpdateBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = true
+function Vayne:AntiGapCloser(unit,range)
+	if BM.AGC.E:Value() and range < Spell[2].range and SReady[2] then
+		CastTargetSpell(unit,2)
 	end
 end
 
-function Jinx:RemoveBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = false
+function Vayne:UpdB(u,b)
+	if u and b then 
+		if b.Name == "VayneSilveredDebuff" then 
+			self.wstacks[u.networkID] = b.Count 
+		end 
+		if u.isMe and b.Name == "vaynetumblefade" then
+			self.invtime = GetTickCount() 
+			self.R = true
+		end
 	end
 end
 
-function Jinx:Tick()
+function Vayne:RemB(u,b)
+	if u and b then 
+		if b.Name == "VayneSilveredDebuff" then 
+			self.wstacks[u.networkID] = 0 
+		end 
+		if u.isMe and b.Name == "vaynetumblefade" then
+			self.invtime = 0 
+			self.R = false
+		end
+	end
+end
+
+function Vayne:GetRTimer()
+	if self.invtime > 0 then
+		return math.floor(2-(GetTickCount()-self.invtime)*.001)
+	end
+end
+
+function Vayne:Has2WStacks(u)
+	for _,i in pairs(self.wstacks) do
+		if i and i == 2 and u.networkID == _ then
+			return true
+		end
+	end
+	return false
+end
+
+function Vayne:IsStealth()
+	if self.invtime > 0 then
+		return true
+	end
+	return false
+end
+
+function Vayne:IsUnderTurret(pos,range)
+	if not pos or not range then return end
+	for _,i in pairs(turrets) do
+		if i.team ~= myHero.team and i.valid and GetDistance(i,pos) < range and AllyMinionsAround(i,950) < 2 then
+			return true
+		end
+	end
+	return false
+end
+
+function Vayne:GetBestTumblePos(u)	
+	if (Mode == "Combo" and BM.Q.C:Value() and GetPercentMP(myHero) > BM.Q.MH:Value()) or (Mode == "Harass" and BM.Q.H:Value() and GetPercentMP(myHero) > BM.Q.MC:Value()) or (u and u.isMinion and u.team == MINION_JUNGLE and Mode == "LaneClear" and BM.Q.JC:Value() and GetPercentMP(myHero) > BM.Q.MJC:Value()) or (u and u.isMinion and u.team == MINION_ENEMY and Mode == "LaneClear" and BM.Q.LC:Value() and GetPercentMP(myHero) > BM.Q.MLC:Value()) then
+		if BM.Q.TC:Value() then
+			if u.type == myHero.type then
+				if self.QPos and EnemyHeroesAround(self.QPos,150) == 0 and not self.QPos2 and GetDistance(u,self.QPos) < GetDistance(u,self.QPos2) and GetDistance(self.QPos) > GetDistance(self.QPos2) and GetDistance(GetMousePos(),self.QPos) > GetDistance(GetMousePos(),self.QPos2) and not self:IsUnderTurret(self.QPos,950) then
+					self.QPos2 = nil
+					return self.QPos
+				else
+					self.QPos = nil
+					if not self:IsUnderTurret(self.QPos2,950) and not self.QPos and self.QPos2 then
+						return self.QPos2
+					end
+				end
+			else
+				if u.team == MINION_ENEMY then
+					if self.QPos and EnemyMinionsAround(self.QPos,150) == 0 and not self.QPos2 and GetDistance(u,self.QPos) < GetDistance(u,self.QPos2) and GetDistance(self.QPos) > GetDistance(self.QPos2) and GetDistance(GetMousePos(),self.QPos) > GetDistance(GetMousePos(),self.QPos2) and not self:IsUnderTurret(self.QPos,950) then
+						self.QPos2 = nil
+						return self.QPos
+					else
+						self.QPos = nil
+						if not self:IsUnderTurret(self.QPos2,950) and not self.QPos and self.QPos2 then
+							return self.QPos2
+						end
+					end
+				elseif u.team == MINION_JUNGLE then
+					if self.QPos and JungleMinionsAround(self.QPos,150) == 0 and not self.QPos2 and GetDistance(u,self.QPos) < GetDistance(u,self.QPos2) and GetDistance(self.QPos) > GetDistance(self.QPos2) and GetDistance(GetMousePos(),self.QPos) > GetDistance(GetMousePos(),self.QPos2) and not self:IsUnderTurret(self.QPos,950) then
+						self.QPos2 = nil
+						return self.QPos
+					else
+						self.QPos = nil
+						if not self:IsUnderTurret(self.QPos2,950) and not self.QPos and self.QPos2 then
+							return self.QPos2
+						end
+					end
+				end
+			end
+		else
+			if u.type == myHero.type then
+				if self.QPos and EnemyHeroesAround(self.QPos,150) == 0 and not self.QPos2 and GetDistance(u,self.QPos) < GetDistance(u,self.QPos2) and GetDistance(self.QPos) > GetDistance(self.QPos2) and GetDistance(GetMousePos(),self.QPos) > GetDistance(GetMousePos(),self.QPos2) then
+					self.QPos2 = nil
+					return self.QPos
+				else
+					self.QPos = nil
+					if not self.QPos and self.QPos2 then
+						return self.QPos2
+					end
+				end
+			else
+				if u.team == MINION_ENEMY then
+					if self.QPos and EnemyMinionsAround(self.QPos,150) == 0 and not self.QPos2 and GetDistance(u,self.QPos) < GetDistance(u,self.QPos2) and GetDistance(self.QPos) > GetDistance(self.QPos2) and GetDistance(GetMousePos(),self.QPos) > GetDistance(GetMousePos(),self.QPos2) then
+						self.QPos2 = nil
+						return self.QPos
+					else
+						self.QPos = nil
+						if not self.QPos and self.QPos2 then
+							return self.QPos2
+						end
+					end
+				elseif u.team == MINION_JUNGLE then
+					if self.QPos and JungleMinionsAround(self.QPos,150) == 0 and not self.QPos2 and GetDistance(u,self.QPos) < GetDistance(u,self.QPos2) and GetDistance(self.QPos) > GetDistance(self.QPos2) and GetDistance(GetMousePos(),self.QPos) > GetDistance(GetMousePos(),self.QPos2) then
+						self.QPos2 = nil
+						return self.QPos
+					else
+						self.QPos = nil
+						if not self.QPos and self.QPos2 then
+							return self.QPos2
+						end
+					end
+				end
+			end	
+		end
+	end
+end
+
+function Vayne:Checks()
+	if SReady[0] then
+		self.TumbleEndPos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero):normalized() * 300
+		self.TumbleStartPos = Vector(myHero)
+	else
+		self.TumbleEndPos = nil
+		self.TumbleStartPos = nil
+	end
+	if self.TumbleEndPos and self.TumbleStartPos then
+		self.QPos = Vector(myHero)+Vector(Vector(GetMousePos())-myHero):normalized()*225+Vector(Vector(self.TumbleEndPos)-Vector(self.TumbleStartPos)):normalized():perpendicular()*225
+		self.QPos2 = Vector(myHero)+Vector(Vector(GetMousePos())-myHero):normalized()*225+Vector(Vector(self.TumbleEndPos)-Vector(self.TumbleStartPos)):normalized():perpendicular2()*225
+	else
+		self.QPos = nil 
+		self.QPos2 = nil
+	end
+	if self:IsStealth() then
+		DisableAttacks(true) 
+	else 
+		DisableAttacks(false) 
+	end 
+end
+
+function Vayne:CastE(u)
+	if SReady[2] and (Mode == "Combo" and BM.E.C:Value() and GetPercentMP(myHero) > BM.E.MH:Value()) or (Mode == "Harass" and BM.E.H:Value() and GetPercentMP(myHero) > BM.E.MC:Value()) or (u and u.isMinion and u.team == MINION_JUNGLE and Mode == "LaneClear" and BM.E.JC:Value() and GetPercentMP(myHero) > BM.E.MJC:Value()) then
+		if u.valid and u.distance < 800 then
+			local e = GetPrediction(u, Spell[2])
+			local ePos = Vector(e.castPos)
+			local c = math.ceil(BM.E.a:Value())
+			local cd = math.ceil(BM.E.pd:Value()/c)
+			for step = 1, c, 5 do
+				local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*step)
+					
+				if MapPosition:inWall(PP) == true then
+					CastTargetSpell(u, 2)
+				end		
+			end
+		end
+	end
+end
+
+function Vayne:CastR(u)
+	if (Mode == "Combo" and BM.R.C:Value() and GetPercentMP(myHero) > BM.R.MH:Value()) or (Mode == "Harass" and BM.R.H:Value() and GetPercentMP(myHero) > BM.R.MC:Value()) then
+		if SReady[3] and ValidTarget(u, 800)  and GetPercentHP(myHero) <= BM.R.MHP:Value() and GetPercentHP(u) <= BM.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.R.AAR:Value() then
+			CastSpell(3)
+		end
+	end
+end
+
+function Vayne:Tick()
 	if myHero.dead then return end
-	
-	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
 	target = ts:GetTarget()
 	
 	GetReady()
-		
+	
+	self:Checks()
+	
+	self:AutoE()
+	
 	self:KS()
-		
-	if Mode == "Combo" then
+
+	   if Mode == "Combo" then
 		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:JungleClear()
+		self:LaneClear()
 	elseif Mode == "Harass" then
 		self:Harass(target)
-	elseif Mode == "LaneClear" then
-		self:LaneClear()
-		self:JungleClear()
-	elseif Mode == "LastHit" then
-		self:LastHit()
 	else
 		return
 	end
 end
 
-function Jinx:ProcessSpellComplete(u,s)
-	if s and s.name:lower():find("attack") and u.isMe then
-		local target = s.target
-		if Mode == "Combo" and target then
-			if BM.C.Q.QL:Value() == 1 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
+function Vayne:AutoE()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if BM.E.EAE:Value() and SReady[2] and GetDistance(GetPrediction(i,{ delay = .3, speed = math.huge, width = 1, range = 1500}).castPos) < BM.E.DTE:Value() and i.valid then
+			CastTargetSpell(i,2)
+		end
+	end
+end
+
+function Vayne:AAReset(un,s)
+	if s and un.isMe and BM.Q.QM:Value() == 1 and s.name:lower():find("attack") then
+		local u = s.target
+		if u and self.TumbleEndPos and self.TumbleStartPos and self:GetBestTumblePos(u) then
+			if GetDistance(self.TumbleEndPos, u) < 630 and GetDistance(self.TumbleEndPos, u) > 100 and SReady[0] then
+				CastSkillShot(0, self:GetBestTumblePos(u))
+			end
+			if GetDistance(u) > 630 and GetDistance(self.TumbleEndPos, u) < 630 and SReady[0] then
+				CastSkillShot(0, self:GetBestTumblePos(u))
+			end
+		end
+	end
+end
+
+function Vayne:Combo(u)
+	if u and BM.Q.QM:Value() == 2 and self:Has2WStacks(u) then
+		if self.TumbleEndPos and self.TumbleStartPos and self:GetBestTumblePos(u) then
+			if GetDistance(self.TumbleEndPos, u) < 630 and GetDistance(self.TumbleEndPos, u) > 100 and SReady[0] then
+				CastSkillShot(0, self:GetBestTumblePos(u))
+			end
+			if GetDistance(u) > 630 and GetDistance(self.TumbleEndPos, u) < 630 and SReady[0] then
+				CastSkillShot(0, self:GetBestTumblePos(u))
+			end
+		end
+	end
+	if u then
+		self:CastE(u)
+		self:CastR(u)
+	end
+end
+
+function Vayne:Harass(u)
+	if u and BM.Q.QM:Value() == 2 and self:Has2WStacks(u) then
+		if self.TumbleEndPos and self.TumbleStartPos and self:GetBestTumblePos(u) then
+			if GetDistance(self.TumbleEndPos, u) < 630 and GetDistance(self.TumbleEndPos, u) > 100 and SReady[0] then
+				CastSkillShot(0, self:GetBestTumblePos(u))
+			end
+			if GetDistance(u) > 630 and GetDistance(self.TumbleEndPos, u) < 630 and SReady[0] then
+				CastSkillShot(0, self:GetBestTumblePos(u))
+			end
+		end
+	end
+	if u then
+		self:CastE(u)
+		self:CastR(u)
+	end
+end
+
+function Vayne:JungleClear()
+	for _,u in pairs(SLM) do
+		if u and BM.Q.QM:Value() == 2 and self:Has2WStacks(u) and u.team == MINION_JUNGLE then
+			if self.TumbleEndPos and self.TumbleStartPos and self:GetBestTumblePos(u) then
+				if GetDistance(self.TumbleEndPos, u) < 630 and GetDistance(self.TumbleEndPos, u) > 100 and SReady[0] then
+					CastSkillShot(0, self:GetBestTumblePos(u))
 				end
-			elseif BM.C.Q.QL:Value() == 2 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end	
-		elseif Mode == "Harass" and target then
-			if BM.H.Q.QL:Value() == 1 and BM.H.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			elseif BM.C.Q.QL:Value() == 2 and BM.H.Q.enable:Value() then	
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end		
-		end
-	end
-end
-
-function Jinx:Combo(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
-end
-
-function Jinx:Harass(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
-end
-
-function Jinx:LaneClear()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			
-			if BM.LC.Q.QL:Value() == 1 and BM.LC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and not minigun then
-					CastSpell(0)
+				if GetDistance(u) > 630 and GetDistance(self.TumbleEndPos, u) < 630 and SReady[0] then
+					CastSkillShot(0, self:GetBestTumblePos(u))
 				end
-		
-			elseif BM.LC.Q.QL:Value() == 2 and BM.LC.Q.enable:Value() then
-	
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
 			end
-			
-			if SReady[1] and ValidTarget(minion, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-			end
+		end
+		if u then
+			self:CastE(u)
 		end
 	end
 end
 
-function Jinx:JungleClear()
-	for _,mob in pairs(SLM) do
-		if GetTeam(mob) == MINION_JUNGLE then
-			
-			if BM.JC.Q.QL:Value() == 1 and BM.JC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and not minigun then
-					CastSpell(0)
+function Vayne:LaneClear()
+	for _,u in pairs(SLM) do
+		if u and BM.Q.QM:Value() == 2 and self:Has2WStacks(u) and u.team == MINION_ENEMY then
+			if self.TumbleEndPos and self.TumbleStartPos and self:GetBestTumblePos(u) then
+				if GetDistance(self.TumbleEndPos, u) < 630 and GetDistance(self.TumbleEndPos, u) > 100 and SReady[0] then
+					CastSkillShot(0, self:GetBestTumblePos(u))
 				end
-		
-			elseif BM.JC.Q.QL:Value() == 2 and BM.JC.Q.enable:Value() then
-	
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
+				if GetDistance(u) > 630 and GetDistance(self.TumbleEndPos, u) < 630 and SReady[0] then
+					CastSkillShot(0, self:GetBestTumblePos(u))
+				end
 			end
 		end
 	end
 end
 
-function Jinx:LastHit()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			if BM.LH.UMinig:Value() and ValidTarget(minion, self.RocketRange) and not minigun and SReady[0] then
-				CastSpell(0)
-			end
+function Vayne:Drawi()
+	if BM.R.DIT:Value() then
+		if self.invtime > 0 then
+			DrawText("Invisble for : "..self:GetRTimer().." sek",20,myHero.pos2D.x-75,myHero.pos2D.y,GoS.White)
+		end
+	end		
+end
+
+function Vayne:KS()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if i and i.alive and i.valid and i.distance < Spell[2].range and Dmg[2](i) > GetADHP(i) and BM.E.KS:Value() then
+			CastTargetSpell(i,2)
 		end
 	end
 end
 
-function Jinx:KS()
-	if not BM.KS.Enable:Value() then return end
-	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, Spell[1].range) and BM.KS.W:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range) and BM.KS.E:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
-		end
-		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[3],3,BM.p)
-		end
-	end
-end
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
 ---------------------------------------------------------------------------------------------

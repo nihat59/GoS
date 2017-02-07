@@ -1,7 +1,7 @@
 local SLAIO,Stage = 0.02,"Jani"
 
 local SLSChamps = {	
-	["Jinx"] = true,
+	["Kalista"] = true,
 }
 
 local SLPatchnew = nil
@@ -556,249 +556,238 @@ end
 ---------------------------------------------------------------------------------------------
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
-class 'Jinx'
+class 'Kalista'
 
-function Jinx:__init()
+function Kalista:__init()
 
 
+	self.eTrack = {}
+	self.soul = nil
+	self.dragon = nil
+	self.EpicJgl = nil
+	self.BigJgl = nil
+	for _,i in pairs(GetAllyHeroes()) do
+		if GotBuff(i, "kalistacoopstrikeally") == 1 then
+			soul = i
+		end
+	end
+
+	
 	Spell = {
-	[0] = { range = 25 * GetCastLevel(myHero,0) + 600 },
-	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
-	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false},
+	[-1] = { delay = .3, speed = math.huge, width = 1, range = 1500},
+	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1150,type = "line",col=true},
+	[1] = { range = 5000 },
+	[2] = { range = 1000 },
+	[3] = { range = 1500 }
 	}
 	
-	
 	Dmg = {
-	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * 1.4, 0) end,
-	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) 
-	local dmg = 150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(GetMaxHP(unit)-GetCurrentHP(unit))*(.20+GetCastLevel(myHero,3)*.5)
-	return CalcDamage(myHero,unit, math.min(math.max(dmg*.1,dmg*GetDistance(GetOrigin(myHero), GetOrigin(unit))/1650),dmg), 0) end
+	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
+	[2] = function (unit) if not unit then return end return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
 	}
 	
 	BM:Menu("C", "Combo")
-	BM.C:Menu("Q", "Q")
-	BM.C.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.C.Q:Boolean("enable", "Enable Q Combo", true)
-	BM.C:Boolean("W", "Use W", true)
-	BM.C:Boolean("E", "Use E", true)
+	BM.C:Boolean("Q", "Use Q", true)
 	
 	BM:Menu("H", "Harass")
-	BM.H:Menu("Q", "Q")
-	BM.H.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.H.Q:Boolean("enable", "Enable Q Harass", true)
-	BM.H:Boolean("W", "Use W", true)
-	BM.H:Boolean("E", "Use E", true)
-	
-	BM:Menu("LC", "LaneClear")
-	BM.LC:Menu("Q", "Q")
-	BM.LC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.LC.Q:Boolean("enable", "Enable Q Laneclear", true)
-	BM.LC:Boolean("W", "Use W", false)
+	BM.H:Boolean("Q", "Use Q", true)
 	
 	BM:Menu("JC", "JungleClear")
-	BM.JC:Menu("Q", "Q")
-	BM.JC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.JC.Q:Boolean("enable", "Enable Q Jungleclear", true)
-	BM.JC:Boolean("W", "Use W", false)
+	BM.JC:Boolean("Q", "Use Q", false)
 	
-	BM:Menu("LH", "LastHit")
-	BM.LH:Boolean("UMinig", "Use only Minigun", true)
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", false)
+	
+	BM:Menu("AE", "Auto E")
+	BM.AE:Menu("MobOpt", "Mob Option")
+	BM.AE.MobOpt:Boolean("UseB", "Use on Big Mobs", true)
+	BM.AE.MobOpt:Boolean("UseE", "Use on Epic Mobs", true)
+	BM.AE.MobOpt:Boolean("UseM", "Use on Minions", true)
+	BM.AE.MobOpt:Boolean("UseMode", "Use only in Laneclear mode",false)
+	BM.AE:Slider("xM", "Kill X Minions", 2, 1, 7, 1)	
+	BM.AE:Boolean("UseC", "Use on Champs", true)
+	BM.AE:Boolean("UseBD", "Use before death", true)
+	BM.AE:Boolean("UseL", "Use if leaves range", false)
+	BM.AE:Slider("OK", "Over kill", 10, 0, 50, 5)
+	BM.AE:Slider("D", "Delay to use E", 10, 0, 50, 5)	
+	
+	BM:Menu("AR", "Auto R")
+	BM.AR:Boolean("enable", "Enable Auto R")
+	BM.AR:Slider("allyHP", "allyHP <= X", 5, 1, 100, 5)
 	
 	BM:Menu("KS", "Killsteal")
-	BM.KS:Boolean("Enable", "Enable Killsteal", true)
-	BM.KS:Boolean("W", "Use W", true)
-	BM.KS:Boolean("E", "Use E", true)
-	BM.KS:Boolean("R", "Enable R KS", true)
-	BM.KS:Slider("mDTT", "R - max Distance to target", 3000, 675, 20000, 10)
-	BM.KS:Slider("DTT", "R - min Distance to target", 1000, 675, 20000, 10)
+	BM.KS:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("WJ", "WallJump")
+	BM.WJ:KeyBinding("J", "Wall Jump", string.byte("G"))
 	
 	BM:Menu("TS", "TargetSelector")
 	ts = SLTS("AD",BM.TS,false)
 	
 	BM:Menu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
+
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
-	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
-	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
+	Callback.Add("UpdateBuff", function(unit, buff) self:UpdateBuff(unit, buff) end)
+	Callback.Add("RemoveBuff", function(unit, buff) self:RemoveBuff(unit, buff) end)
+	Callback.Add("ProcessSpellComplete", function(unit, spell) self:AAReset(unit, spell) end)
 
-	for i = 1,3 do
+	for i = 0,0 do
 		PredMenu(BM.p, i)	
 	end
 end
 
-function Jinx:UpdateBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = true
+function Kalista:UpdateBuff(unit, buff) 
+	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" and (unit.type==Obj_AI_Hero or unit.type==Obj_AI_Minion or unit.type==Obj_AI_Camp) then
+		self.eTrack[GetNetworkID(unit)]=buff.Count 
+	elseif buff.Name:lower() == "kalistacoopstrikeally" and GetTeam(unit) == MINION_ALLY then
+		soul = unit
 	end
 end
 
-function Jinx:RemoveBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = false
+function Kalista:RemoveBuff(unit, buff) 
+	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" and (unit.type==Obj_AI_Hero or unit.type==Obj_AI_Minion or unit.type==Obj_AI_Camp) then
+		self.eTrack[GetObjectName(unit)]=0 
+	elseif buff.Name:lower() == "kalistacoopstrikeally" and GetTeam(unit) == MINION_ALLY then
+		soul = nil
 	end
 end
 
-function Jinx:Tick()
+function Kalista:Tick()
+	for _,i in pairs(SLM) do
+		if i.charName:lower():find("sru_dragon") then
+			self.dragon = i.charName
+		end
+	end
+	if not self.dragon then
+		self.EpicJgl = {["SRU_Baron"]=true, ["TT_Spiderboss"]=true}
+		self.BigJgl = {["SRU_Baron"]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
+	else
+		self.EpicJgl = {["SRU_Baron"]=true, [self.dragon]=true,["TT_Spiderboss"]=true}
+		self.BigJgl = {["SRU_Baron"]=true, [self.dragon]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
+	end
 	if myHero.dead then return end
-	
-	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
 	target = ts:GetTarget()
-	
 	GetReady()
-		
 	self:KS()
-		
-	if Mode == "Combo" then
-		self:Combo(target)
-	elseif Mode == "Harass" then
-		self:Harass(target)
-	elseif Mode == "LaneClear" then
+	self:AutoR()
+	self:WallJump()
+	
+	if Mode == "LaneClear" then
 		self:LaneClear()
 		self:JungleClear()
-	elseif Mode == "LastHit" then
-		self:LastHit()
 	else
 		return
 	end
 end
 
-function Jinx:ProcessSpellComplete(u,s)
-	if s and s.name:lower():find("attack") and u.isMe then
-		local target = s.target
-		if Mode == "Combo" and target then
-			if BM.C.Q.QL:Value() == 1 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end
-			elseif BM.C.Q.QL:Value() == 2 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end	
-		elseif Mode == "Harass" and target then
-			if BM.H.Q.QL:Value() == 1 and BM.H.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			elseif BM.C.Q.QL:Value() == 2 and BM.H.Q.enable:Value() then	
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end		
+function Kalista:AutoR()
+	if soul and BM.AR.enable:Value() and GetPercentHP(soul) <= BM.AR.allyHP:Value() and EnemiesAround(GetOrigin(soul), 1000) >= 1 then
+		CastSpell(3)
+	end
+end
+
+function Kalista:AAReset(unit, spell)
+	local ta = spell.target
+	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] and ValidTarget(ta, Spell[0].range) then
+		if ((Mode == "Combo" and BM.C.Q:Value()) or (Mode == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (Mode == "LaneClear" and ((BM.JC.Q:Value() and (GetObjectType(ta)==Obj_AI_Camp or GetObjectType(ta)==Obj_AI_Minion)) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 		end
 	end
 end
 
-function Jinx:Combo(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
+function Kalista:JungleClear()
+
 end
 
-function Jinx:Harass(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
+function Kalista:LaneClear()
+
 end
 
-function Jinx:LaneClear()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			
-			if BM.LC.Q.QL:Value() == 1 and BM.LC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and not minigun then
-					CastSpell(0)
-				end
-		
-			elseif BM.LC.Q.QL:Value() == 2 and BM.LC.Q.enable:Value() then
+function Kalista:KS()
+	for _,target in pairs(GetEnemyHeroes()) do
+		if SReady[0] and ValidTarget(target, Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+		end
+		if SReady[2] and ValidTarget(target, 1000) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and self.eTrack[GetNetworkID(target)] > 0 then
+			DelayAction(function()
+				CastSpell(2)
+			end, BM.AE.D:Value()*.01)
+		end
+		if SReady[2] and ValidTarget(target, 1100) and BM.AE.UseL:Value() and self.eTrack[GetNetworkID(target)] then
+			local Pred = GetPrediction(target,Spell[-1])
+			if GetDistance(Pred.castPos,GetOrigin(myHero))>999 then
+				CastSpell(2)
+			end
+		end
+	end
 	
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(minion, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-			end
-		end
-	end
-end
-
-function Jinx:JungleClear()
-	for _,mob in pairs(SLM) do
-		if GetTeam(mob) == MINION_JUNGLE then
-			
-			if BM.JC.Q.QL:Value() == 1 and BM.JC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and not minigun then
-					CastSpell(0)
+	if not BM.AE.MobOpt.UseMode:Value() or Mode == "LaneClear" then
+		for _,mob in pairs(SLM) do
+			if GetTeam(mob) == MINION_JUNGLE then
+				if SReady[2] and ValidTarget(mob, 750) and Dmg[2](mob) > GetCurrentHP(mob) then
+					if BM.AE.MobOpt.UseE:Value() and self.EpicJgl[GetObjectName(mob)] then
+						CastSpell(2)
+					elseif BM.AE.MobOpt.UseB:Value() and self.BigJgl[GetObjectName(mob)] then
+						CastSpell(2)
+					end
 				end
+			end
+		end
 		
-			elseif BM.JC.Q.QL:Value() == 2 and BM.JC.Q.enable:Value() then
-	
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
+		self.km = 0
+		for _,minion in pairs(SLM) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 1000) and BM.AE.MobOpt.UseM:Value() then
+					self.km = self.km + 1
+				end
 			end
 		end
+		if self.km >= BM.AE.xM:Value() then
+			CastSpell(2)
+		end
+	end
+	if BM.AE.UseBD:Value() and GetPercentHP(myHero)<=2 and SReady[2] then
+		CastSpell(2)
 	end
 end
 
-function Jinx:LastHit()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			if BM.LH.UMinig:Value() and ValidTarget(minion, self.RocketRange) and not minigun and SReady[0] then
-				CastSpell(0)
+function Kalista:WallJump()
+	if SReady[0] and BM.WJ.J:Value() and GetDistance(GetMousePos(),GetOrigin(myHero))<1500 then
+		local mou = GetMousePos()
+		local wallEnd = nil
+		local wallStart = nil
+		if not MapPosition:inWall(mou) then
+			--DrawLine(WorldToScreen(0, GetOrigin(myHero)).x, WorldToScreen(0, GetOrigin(myHero)).y, WorldToScreen(0, mou).x, WorldToScreen(0, mou).y, 3, GoS.White)
+			local dV = Vector(GetOrigin(myHero))-Vector(mou)
+			for i = 1, dV:len(), 5 do
+				if MapPosition:inWall(mou+dV:normalized()*i) and not wallEnd then
+					wallEnd = Vector(mou+dV:normalized()*i)
+				elseif wallEnd and not MapPosition:inWall(Vector(mou+dV:normalized()*i)) then
+					wallStart = Vector(mou+dV:normalized()*i)
+					DrawCircle(wallStart,50,0,3,GoS.White)
+					break
+				end
 			end
-		end
-	end
-end
-
-function Jinx:KS()
-	if not BM.KS.Enable:Value() then return end
-	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, Spell[1].range) and BM.KS.W:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range) and BM.KS.E:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
-		end
-		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[3],3,BM.p)
+			if wallEnd and wallStart then
+				local WS = WorldToScreen(0,wallStart)
+				local WE = WorldToScreen(0,wallEnd)
+				if Vector(wallEnd-wallStart):len() < 290 then
+					DrawLine(WS.x,WS.y,WE.x,WE.y,3,GoS.Green)
+					MoveToXYZ(wallStart)
+				else
+					DrawLine(WS.x,WS.y,WE.x,WE.y,3,GoS.Red)
+					DrawCircle(wallEnd,50,0,3,GoS.White)
+					DrawCircle(wallStart,50,0,3,GoS.White)
+				end
+				if GetDistance(GetOrigin(myHero),wallEnd) < 290 then
+					CastSkillShot(0,wallEnd)
+					DelayAction(function()
+						MoveToXYZ(mou)
+					end, .001)
+				end
+			end
 		end
 	end
 end

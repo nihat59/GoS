@@ -1,7 +1,7 @@
 local SLAIO,Stage = 0.02,"Jani"
 
 local SLSChamps = {	
-	["Jinx"] = true,
+	["Anivia"] = true,
 }
 
 local SLPatchnew = nil
@@ -556,249 +556,447 @@ end
 ---------------------------------------------------------------------------------------------
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
-class 'Jinx'
+class 'Anivia'
 
-function Jinx:__init()
+function Anivia:__init()
 
+	self.CCType = { 
+	[5] = "Stun", 
+	[8] = "Taunt", 
+	[11] = "Snare", 
+	[21] = "Fear", 
+	[22] = "Charm", 
+	[24] = "Suppression",
+	}
+	
+	self.CCType2 = { 
+	[5] = "Stun", 
+	[10] = "Slow",
+	}
 
 	Spell = {
-	[0] = { range = 25 * GetCastLevel(myHero,0) + 600 },
-	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
-	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false},
+	[0] = { delay=0.25,range=1075,radius=110,speed=850,type = "line",col=false},
+	[1] = { range = 1000},
+	[2] = { range = 650},
+	[3] = { range = 750, width = 200,width2 = 200},
 	}
-	
 	
 	Dmg = {
-	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * 1.4, 0) end,
-	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) 
-	local dmg = 150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(GetMaxHP(unit)-GetCurrentHP(unit))*(.20+GetCastLevel(myHero,3)*.5)
-	return CalcDamage(myHero,unit, math.min(math.max(dmg*.1,dmg*GetDistance(GetOrigin(myHero), GetOrigin(unit))/1650),dmg), 0) end
+    [0] = function(unit) return (30+30*GetCastLevel(myHero,0)*2+myHero.ap)+(35+25*GetCastLevel(myHero,0)+0.4*myHero.ap) end,
+    [2] = function(unit) return (25+30*GetCastLevel(myHero,2)+0.5*myHero.ap)*(self.AniviaStun2[unit.networkID] and self.AniviaStun2[unit.networkID]+1 or 1) end,
+    [3] = function(unit) return 40+40*GetCastLevel(myHero,3)+0.25*myHero.ap end,
 	}
 	
-	BM:Menu("C", "Combo")
-	BM.C:Menu("Q", "Q")
-	BM.C.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.C.Q:Boolean("enable", "Enable Q Combo", true)
-	BM.C:Boolean("W", "Use W", true)
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
 	BM.C:Boolean("E", "Use E", true)
+	BM.C:Menu("R", "R")
+	BM.C.R:Boolean("E", "Enabled", true)
+	BM.C.R:Slider("EAR", "EnemiesAround > x", 1, 1, 5, 1)
+	BM.C.R:Slider("AAR", "AlliesAround > x", 0, 0, 5, 1)
+	BM.C.R:Slider("MHP", "My Hero HP < x", 100, 0, 100, 5)
+	BM.C.R:Slider("EHP", "Enemy HP < x", 100, 0, 100, 5)
+	BM.C.R:Slider("MM", "Mana > x", 10, 0, 100, 5)
 	
-	BM:Menu("H", "Harass")
-	BM.H:Menu("Q", "Q")
-	BM.H.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.H.Q:Boolean("enable", "Enable Q Harass", true)
-	BM.H:Boolean("W", "Use W", true)
-	BM.H:Boolean("E", "Use E", true)
+	BM:SubMenu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("E", "Use E", true)	
+	BM.H:Menu("R", "R")
+	BM.H.R:Boolean("E", "Enabled", true)
+	BM.H.R:Slider("EAR", "EnemiesAround > x", 1, 1, 5, 1)
+	BM.H.R:Slider("AAR", "AlliesAround > x", 0, 0, 5, 1)
+	BM.H.R:Slider("MHP", "My Hero HP < x", 100, 0, 100, 5)
+	BM.H.R:Slider("EHP", "Enemy HP < x", 100, 0, 100, 5)
+	BM.H.R:Slider("MM", "Mana > x", 10, 0, 100, 5)
+
+	BM:SubMenu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("E", "Use E", true)
+	BM.LC:Boolean("R", "Use R", true)	
 	
-	BM:Menu("LC", "LaneClear")
-	BM.LC:Menu("Q", "Q")
-	BM.LC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.LC.Q:Boolean("enable", "Enable Q Laneclear", true)
-	BM.LC:Boolean("W", "Use W", false)
-	
-	BM:Menu("JC", "JungleClear")
-	BM.JC:Menu("Q", "Q")
-	BM.JC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.JC.Q:Boolean("enable", "Enable Q Jungleclear", true)
-	BM.JC:Boolean("W", "Use W", false)
-	
-	BM:Menu("LH", "LastHit")
-	BM.LH:Boolean("UMinig", "Use only Minigun", true)
-	
-	BM:Menu("KS", "Killsteal")
-	BM.KS:Boolean("Enable", "Enable Killsteal", true)
-	BM.KS:Boolean("W", "Use W", true)
-	BM.KS:Boolean("E", "Use E", true)
-	BM.KS:Boolean("R", "Enable R KS", true)
-	BM.KS:Slider("mDTT", "R - max Distance to target", 3000, 675, 20000, 10)
-	BM.KS:Slider("DTT", "R - min Distance to target", 1000, 675, 20000, 10)
-	
+	BM:SubMenu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("E", "Use E", true)
+	BM.JC:Boolean("R", "Use R", true)	
+
 	BM:Menu("TS", "TargetSelector")
-	ts = SLTS("AD",BM.TS,false)
+	ts = SLTS("AP",BM.TS,false)
 	
-	BM:Menu("p", "Prediction")
+	BM:SubMenu("p", "Prediction")
+
+	BM:SubMenu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("E", "Use E", true)
+	BM.KS:Boolean("R", "Use R", true)
+
+	BM:SubMenu("Dr", "Drawings")
+	BM.Dr:Boolean("UD", "Use Drawings", true)
+	BM.Dr:ColorPick("Cc", "Circle color", {255,102,102,102})
+	BM.Dr:DropDown("DQ", "Draw Quality", 3, {"High", "Medium", "Low"})
+	BM.Dr:Slider("CW", "Circle width", 1, 1, 5, 1)
+	BM.Dr:Boolean("DQC", "Draw Q Circle", true)
+	BM.Dr:Boolean("Q", "Draw Q", true)
+	BM.Dr:Boolean("W", "Draw W", true)
+	BM.Dr:Boolean("E", "Draw E", true)
+	BM.Dr:Boolean("R", "Draw R", true)
+	
+	BM:Boolean("AQ", "Auto Q on immobile", true)
+	BM:Boolean("AE", "Auto E on Slowed,Stuned", true)
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
-	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
-	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
-
-	for i = 1,3 do
-		PredMenu(BM.p, i)	
+	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
+	Callback.Add("Draw", function() self:D() end)
+	Callback.Add("CreateObj", function(o) self:CreateObj(o) end)
+	Callback.Add("DeleteObj", function(o) self:DeleteObj(o) end)
+	Callback.Add("ProcessSpell", function(u,s) self:ProcSp(u,s) end)
+	AntiChannel()
+	AntiGapCloser()
+	DelayAction( function ()
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("Q","Use Q", true) BM.AC:Boolean("W","Use W", true) end
+	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("Q","Use Q", true) BM.AGC:Boolean("W","Use W", true)end
+	end,.001)
+	
+	self.CC = false
+	self.AniviaStun = false
+	self.AniviaStun2 = {}
+	self.o = {}
+	self.R = {}
+	self.R2Casted = false
+	self.Q2Casted = false
+	
+	for i = 0,0 do
+		PredMenu(BM.p,i)
 	end
 end
 
-function Jinx:UpdateBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = true
+function Anivia:CleanObj(_,i)
+	if i.o and not i.o.valid then
+		self.o[_] = nil
+		self.Q2Casted = false
 	end
 end
 
-function Jinx:RemoveBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = false
+function Anivia:AntiChannel(unit,range)
+	if BM.AC.Q:Value() and range < Spell[0].range then
+		if not self.Q2Casted then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+		end
+		for _,i in pairs(self.o) do
+			if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+				CastSpell(0)
+			end
+		end
+	end
+	if BM.AC.W:Value() and range < Spell[1].range then
+		CastSkillShot(1,unit.pos)
 	end
 end
 
-function Jinx:Tick()
+function Anivia:AntiGapCloser(unit,range)
+	if BM.AGC.Q:Value() and range < Spell[0].range then
+		if not self.Q2Casted then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+		end
+		for _,i in pairs(self.o) do
+			if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+				CastSpell(0)
+			end
+		end
+	end
+	if BM.AGC.W:Value() and range < Spell[1].range then
+		CastSkillShot(1,unit.pos)
+	end
+end
+
+function Anivia:CreateObj(o)
+	if o.spellOwner.isMe and o and o.isSpell then
+		if o.spellName == "FlashFrostSpell" then
+			if not self.o[o.spellName] then self.o[o.spellName] = {} end
+			self.o[o.spellName].o = o
+			self.Q2Casted = true
+		end
+	end
+end
+
+function Anivia:DeleteObj(o)
+	if o.spellOwner.isMe and o and o.isSpell then
+		if o.spellName == "FlashFrostSpell" then
+			self.o[o.spellName] = nil
+			self.Q2Casted = false
+		end
+	end
+end
+
+function Anivia:UpdateBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = true
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun = true
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun2[u.networkID] = b.Count
+		end
+	end
+	if u and u.isMe and b and u.isHero then
+		if b.Name == "GlacialStorm" then
+			self.R2Casted = true
+		end
+	end
+end
+
+function Anivia:RemoveBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = false
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun = false
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun2[u.networkID] = 0
+		end
+	end
+	if u and u.isMe and b and u.isHero then
+		if b.Name == "GlacialStorm" then
+			for _,i in pairs(self.R) do
+				self.R[_] = nil
+			end
+			self.R2Casted = false
+		end
+	end
+end
+
+function Anivia:ProcSp(u,s)
+	if u.isMe and u and s then
+		if s.name == "GlacialStorm" then
+			if not self.R[s.name] then self.R[s.name] = {} end
+			self.R[s.name].s = s
+			self.R[s.name].st = GetGameTimer()
+		end
+	end
+end
+
+function Anivia:D()
+	if BM.Dr.UD:Value() then
+		for _,i in pairs(self.o) do
+			if i.o and i.o.valid and BM.Dr.DQC:Value() then
+				DrawCircle(i.o.pos,120+myHero.boundingRadius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,GoS.White)
+			end
+		end
+		if BM.Dr.Q:Value() and SReady[0] then
+			DrawCircle(myHero.pos,Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.W:Value() and SReady[1] then
+			DrawCircle(myHero.pos,Spell[1].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.E:Value() and SReady[2] then
+			DrawCircle(myHero.pos,Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.R:Value() and SReady[3] then
+			DrawCircle(myHero.pos,Spell[3].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+	end
+end
+
+function Anivia:Tick()
+	for _,i in pairs(self.o) do
+		self:CleanObj(_,i)
+	end
+	for _,i in pairs(self.R) do
+		 if i and i.st and i.st + 3 > GetGameTimer() then
+			Spell[3].width = Spell[3].width2 + (GetGameTimer()  - i.st)* 67
+		elseif i and i.st and i.st + 3 == GetGameTimer() then
+			Spell[3].width = Spell[3].width
+		 end
+	end
+	if not self.R2Casted then
+		Spell[3].width = Spell[3].width2
+	end
 	if myHero.dead then return end
-	
-	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
 	target = ts:GetTarget()
-	
 	GetReady()
-		
+	
 	self:KS()
-		
-	if Mode == "Combo" then
+	
+	self:AutoQ()
+	self:AutoE()
+
+    if Mode == "Combo" then
 		self:Combo(target)
-	elseif Mode == "Harass" then
-		self:Harass(target)
 	elseif Mode == "LaneClear" then
 		self:LaneClear()
 		self:JungleClear()
-	elseif Mode == "LastHit" then
-		self:LastHit()
+	elseif Mode == "Harass" then
+		self:Harass(target)
 	else
 		return
 	end
 end
 
-function Jinx:ProcessSpellComplete(u,s)
-	if s and s.name:lower():find("attack") and u.isMe then
-		local target = s.target
-		if Mode == "Combo" and target then
-			if BM.C.Q.QL:Value() == 1 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
+function Anivia:Combo(u)	
+	if u then
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
 					CastSpell(0)
 				end
-			elseif BM.C.Q.QL:Value() == 2 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
 			end	
-		elseif Mode == "Harass" and target then
-			if BM.H.Q.QL:Value() == 1 and BM.H.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
+		end
+		if BM.C.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) and self.AniviaStun then
+			CastTargetSpell(u,2)
+		end	
+		if not self.R2Casted and BM.C.R.E:Value() and SReady[3] and ValidTarget(u, 1000) and GetPercentMP(myHero) >= BM.C.R.MM:Value() and GetPercentHP(myHero) <= BM.C.R.MHP:Value() and GetPercentHP(u) <= BM.C.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.C.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.C.R.AAR:Value() then
+			CastSkillShot(3,u.pos)
+		end
+		for _,i in pairs(self.R) do
+			if self.R2Casted and i.p and BM.C.R.E:Value() and SReady[3] or EnemyHeroesAround(i.s.endPos,Spell[3].width) == 0 then
+				CastSpell(3)
+			end
+		end
+	end
+end
+
+function Anivia:Harass(u)	
+	if u then
+		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
 					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			elseif BM.C.Q.QL:Value() == 2 and BM.H.Q.enable:Value() then	
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
+				end
+			end
+		end		
+		if BM.H.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) and self.AniviaStun then
+			CastTargetSpell(u,2)
+		end	
+		if not self.R2Casted and BM.H.R.E:Value() and SReady[3] and ValidTarget(u, 1000) and GetPercentMP(myHero) >= BM.H.R.MM:Value() and GetPercentHP(myHero) <= BM.H.R.MHP:Value() and GetPercentHP(u) <= BM.H.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.H.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.H.R.AAR:Value() then
+			CastSkillShot(3,u.pos)
+		end
+		for _,i in pairs(self.R) do
+			if self.R2Casted and i.p and BM.H.R.E:Value() and SReady[3] or EnemyHeroesAround(i.s.endPos,Spell[3].width) == 0 then
+				CastSpell(3)
+			end
+		end
+	end
+end
+
+function Anivia:LaneClear()	
+	for k,unit in pairs(SLM) do
+		if unit.team == MINION_ENEMY then
+			if BM.LC.Q:Value() and SReady[0] and ValidTarget(unit, Spell[0].range) then
+				if not self.Q2Casted then
+					CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+				end
+				for _,i in pairs(self.o) do
+					if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+						CastSpell(0)
+					end
+				end
 			end		
+			if BM.LC.E:Value() and SReady[2] and ValidTarget(unit, Spell[2].range) and self.AniviaStun then
+				CastTargetSpell(unit,2)
+			end
+			if not self.R2Casted and BM.LC.R:Value() and SReady[3] and ValidTarget(unit, 1000) then
+				CastSkillShot(3,unit.pos)
+			end
+			for _,i in pairs(self.R) do
+				if self.R2Casted and i.p and BM.LC.R:Value() and SReady[3] or EnemyMinionsAround(i.s.endPos,Spell[3].width) == 0 then
+					CastSpell(3)
+				end
+			end			
 		end
 	end
 end
 
-function Jinx:Combo(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
+function Anivia:JungleClear()
+	for k,unit in pairs(SLM) do
+		if unit.team == MINION_JUNGLE then
+			if BM.JC.Q:Value() and SReady[0] and ValidTarget(unit, Spell[0].range) then
+				if not self.Q2Casted then
+					CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+				end
+				for _,i in pairs(self.o) do
+					if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+						CastSpell(0)
+					end
+				end
+			end		
+			if BM.JC.E:Value() and SReady[2] and ValidTarget(unit, Spell[2].range) and self.AniviaStun then
+				CastTargetSpell(unit,2)
+			end	
+			if not self.R2Casted and BM.JC.R:Value() and SReady[3] and ValidTarget(unit, 1000) then
+				CastSkillShot(3,unit.pos)
+			end
+			for _,i in pairs(self.R) do
+				if self.R2Casted and i.p and BM.JC.R:Value() and SReady[3] or JungleMinionsAround(i.s.endPos,Spell[3].width) == 0 then
+					CastSpell(3)
+				end
+			end	
+		end
+	end
 end
 
-function Jinx:Harass(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
-end
-
-function Jinx:LaneClear()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			
-			if BM.LC.Q.QL:Value() == 1 and BM.LC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and not minigun then
+function Anivia:KS()
+	for k,unit in pairs(GetEnemyHeroes()) do
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(unit, Spell[0].range) and GetAPHP(unit) < Dmg[0](unit) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
 					CastSpell(0)
 				end
-		
-			elseif BM.LC.Q.QL:Value() == 2 and BM.LC.Q.enable:Value() then
-	
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(minion, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 			end
 		end
+		if BM.KS.E:Value() and SReady[2] and ValidTarget(unit, Spell[2].range) and GetAPHP(unit) < Dmg[2](unit) then
+			CastTargetSpell(unit,2)
+		end	
+		if not self.R2Casted and GetAPHP(unit) < Dmg[3](unit) and BM.KS.E:Value() and SReady[3] and ValidTarget(u, 1000) then
+			CastSkillShot(3,unit.pos)
+		end
+		for _,i in pairs(self.R) do
+			if self.R2Casted and i.p and BM.C.R.E:Value() and SReady[3] or EnemyHeroesAround(i.s.endPos,Spell[3].width) == 0 then
+				CastSpell(3)
+			end
+		end			
 	end
 end
 
-function Jinx:JungleClear()
-	for _,mob in pairs(SLM) do
-		if GetTeam(mob) == MINION_JUNGLE then
-			
-			if BM.JC.Q.QL:Value() == 1 and BM.JC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and not minigun then
+function Anivia:AutoQ()
+	for m,unit in pairs(GetEnemyHeroes()) do
+		if unit and BM.AQ:Value() and SReady[0] and ValidTarget(unit,Spell[0].range) and (self.CC or self.AniviaStun) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
 					CastSpell(0)
 				end
-		
-			elseif BM.JC.Q.QL:Value() == 2 and BM.JC.Q.enable:Value() then
-	
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 			end
 		end
 	end
 end
 
-function Jinx:LastHit()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			if BM.LH.UMinig:Value() and ValidTarget(minion, self.RocketRange) and not minigun and SReady[0] then
-				CastSpell(0)
-			end
-		end
-	end
-end
-
-function Jinx:KS()
-	if not BM.KS.Enable:Value() then return end
-	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, Spell[1].range) and BM.KS.W:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range) and BM.KS.E:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
-		end
-		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[3],3,BM.p)
+function Anivia:AutoE()
+	for m,unit in pairs(GetEnemyHeroes()) do
+		if unit and BM.AE:Value() and SReady[2] and ValidTarget(unit,Spell[2].range) and self.AniviaStun then
+			CastTargetSpell(unit,2)
 		end
 	end
 end

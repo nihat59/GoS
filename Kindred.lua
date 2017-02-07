@@ -1,7 +1,7 @@
 local SLAIO,Stage = 0.02,"Jani"
 
 local SLSChamps = {	
-	["Jinx"] = true,
+	["Kindred"] = true,
 }
 
 local SLPatchnew = nil
@@ -556,250 +556,255 @@ end
 ---------------------------------------------------------------------------------------------
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
-class 'Jinx'
+class "Kindred"
 
-function Jinx:__init()
-
-
+function Kindred:__init()
 	Spell = {
-	[0] = { range = 25 * GetCastLevel(myHero,0) + 600 },
-	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
-	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false},
+	[0] = {range = 500, dash = 340, mana = 35},
+	[1] = {range = 800, duration = 8, mana = 40},
+	[2] = {range = 500, mana = 70, mana = 70},
+	[3] = {range = 400, range2 = 500, mana = 100},
 	}
-	
-	
-	Dmg = {
-	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * 1.4, 0) end,
-	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) 
-	local dmg = 150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(GetMaxHP(unit)-GetCurrentHP(unit))*(.20+GetCastLevel(myHero,3)*.5)
-	return CalcDamage(myHero,unit, math.min(math.max(dmg*.1,dmg*GetDistance(GetOrigin(myHero), GetOrigin(unit))/1650),dmg), 0) end
+	Dmg = 
+	{
+	[0] = function(Unit) return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 0)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20) end,
+	[1] = function(Unit) return CalcDamage(myHero, Unit, 20+5*GetCastLevel(myHero, 1)+0.40*(GetBaseDamage(myHero) + GetBonusDmg(myHero))+0.40*self:PassiveDmg(Unit)) end,
+	[2] = function(Unit) 	if GetTeam(Unit) == MINION_JUNGLE then
+					return CalcDamage(myHero, Unit, math.max(300,30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05))
+				else 
+					return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05)
+				end
+		  end,
 	}
-	
-	BM:Menu("C", "Combo")
-	BM.C:Menu("Q", "Q")
-	BM.C.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.C.Q:Boolean("enable", "Enable Q Combo", true)
-	BM.C:Boolean("W", "Use W", true)
-	BM.C:Boolean("E", "Use E", true)
-	
-	BM:Menu("H", "Harass")
-	BM.H:Menu("Q", "Q")
-	BM.H.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.H.Q:Boolean("enable", "Enable Q Harass", true)
-	BM.H:Boolean("W", "Use W", true)
-	BM.H:Boolean("E", "Use E", true)
-	
-	BM:Menu("LC", "LaneClear")
-	BM.LC:Menu("Q", "Q")
-	BM.LC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.LC.Q:Boolean("enable", "Enable Q Laneclear", true)
-	BM.LC:Boolean("W", "Use W", false)
-	
-	BM:Menu("JC", "JungleClear")
-	BM.JC:Menu("Q", "Q")
-	BM.JC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.JC.Q:Boolean("enable", "Enable Q Jungleclear", true)
-	BM.JC:Boolean("W", "Use W", false)
-	
-	BM:Menu("LH", "LastHit")
-	BM.LH:Boolean("UMinig", "Use only Minigun", true)
-	
-	BM:Menu("KS", "Killsteal")
-	BM.KS:Boolean("Enable", "Enable Killsteal", true)
-	BM.KS:Boolean("W", "Use W", true)
-	BM.KS:Boolean("E", "Use E", true)
-	BM.KS:Boolean("R", "Enable R KS", true)
-	BM.KS:Slider("mDTT", "R - max Distance to target", 3000, 675, 20000, 10)
-	BM.KS:Slider("DTT", "R - min Distance to target", 1000, 675, 20000, 10)
+	self.BaseAS = GetBaseAttackSpeed(myHero)
+	self.AAPS = self.BaseAS*GetAttackSpeed(myHero)
+	self.WolfAA = Spell[1].duration*self.AAPS
+	basePos = Vector(0,0,0)
+	if GetTeam(myHero) == 100 then
+		basePos = Vector(415,182,415)
+	else
+		basePos = Vector(14302,172,14387.8)
+	end
+	self.Recalling = false
+	self.Farsight = false
+	self.Passive = 0
+	OnTick(function(myHero) self:Tick() end)
+	OnProcessSpellComplete(function(unit, spell) self:OnProcComplete(unit, spell) end)
+	OnProcessSpell(function(unit, spell) self:OnProc(unit, spell) end)
+	Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
+
+	BM:Menu("Combo", "Combo")
+	BM.Combo:Boolean("Q", "Use Q", true)
+	BM.Combo:Boolean("W", "Use W", true)
+	BM.Combo:Boolean("E", "Use E", true)
+	BM.Combo:Boolean("QE", "Gapcloser", true)
+
+	BM:Menu("JunglerClear", "JunglerClear")
+	BM.JunglerClear:Boolean("Q", "Use Q", true)
+	BM.JunglerClear:Boolean("W", "Use W", true)
+	BM.JunglerClear:Boolean("E", "Use E", true)
+	BM.JunglerClear:Slider("MM", "Mana manager", 50, 1, 100)
+
+	BM:Menu("LaneClear", "LaneClear")
+	BM.LaneClear:Boolean("Q", "Use Q", true)
+	BM.LaneClear:Boolean("W", "Use W", true)
+	BM.LaneClear:Boolean("E", "Use E", true)
+	BM.LaneClear:Slider("MM", "Mana manager", 50, 1, 100)
+
+	BM:Menu("Misc", "Misc")
+	BM.Misc:Boolean("B", "Buy Farsight", true)
+	BM.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
+	BM.Misc:Key("WP", "Jumps", string.byte("G"))
+
+	BM:Menu("ROptions", "R Options")
+	BM.ROptions:Boolean("R", "Use R?", true)
+	BM.ROptions:Slider("EA", "Enemies around", 3, 1, 5)
+	BM.ROptions:Boolean("RU", "Use R on urself", true)
+
+	BM:Menu("QOptions", "Q Options")
+	BM.QOptions:Boolean("QC", "AA reset Combo", true)
+	BM.QOptions:Boolean("QL", "AA reset LaneClear", true)
+	BM.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
+	BM.QOptions:Boolean("C", "Cancel animation?", false)
 	
 	BM:Menu("TS", "TargetSelector")
 	ts = SLTS("AD",BM.TS,false)
-	
-	BM:Menu("p", "Prediction")
-	
-	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
-	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
-	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
 
-	for i = 1,3 do
-		PredMenu(BM.p, i)	
-	end
-end
-
-function Jinx:UpdateBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = true
-	end
-end
-
-function Jinx:RemoveBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = false
-	end
-end
-
-function Jinx:Tick()
-	if myHero.dead then return end
-	
-	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
-	target = ts:GetTarget()
-	
-	GetReady()
-		
-	self:KS()
-		
-	if Mode == "Combo" then
-		self:Combo(target)
-	elseif Mode == "Harass" then
-		self:Harass(target)
-	elseif Mode == "LaneClear" then
-		self:LaneClear()
-		self:JungleClear()
-	elseif Mode == "LastHit" then
-		self:LastHit()
-	else
-		return
-	end
-end
-
-function Jinx:ProcessSpellComplete(u,s)
-	if s and s.name:lower():find("attack") and u.isMe then
-		local target = s.target
-		if Mode == "Combo" and target then
-			if BM.C.Q.QL:Value() == 1 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end
-			elseif BM.C.Q.QL:Value() == 2 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end	
-		elseif Mode == "Harass" and target then
-			if BM.H.Q.QL:Value() == 1 and BM.H.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			elseif BM.C.Q.QL:Value() == 2 and BM.H.Q.enable:Value() then	
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end		
+	DelayAction(function()
+		for i, allies in pairs(GetAllyHeroes()) do
+			BM.ROptions:Boolean("Pleb"..GetObjectName(allies), "Use R on "..GetObjectName(allies), true)
 		end
-	end
+	end, 0.001)
 end
 
-function Jinx:Combo(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
-end
-
-function Jinx:Harass(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
-end
-
-function Jinx:LaneClear()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			
-			if BM.LC.Q.QL:Value() == 1 and BM.LC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and not minigun then
-					CastSpell(0)
-				end
-		
-			elseif BM.LC.Q.QL:Value() == 2 and BM.LC.Q.enable:Value() then
+function Kindred:Tick()
+	if not IsDead(myHero) then
 	
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
+		GetReady()
+		target = ts:GetTarget()
+		if Mode == "Combo" then
+			self:Combo(target)
+		elseif Mode == "LaneClear" then
+			self:LaneClear()
+		end
+
+		self:AutoR()
+		if BM.Misc.FQ:Value() then
+			if SReady[0] and Ready(Flash) and BM.Combo.Q:Value() then  
+				CastSkillShot(Flash, GetMousePos()) 
+					DelayAction(function() CastSkillShot(0, GetMousePos()) end, 1)					  
 			end
-			
-			if SReady[1] and ValidTarget(minion, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
+		end
+		if BM.Misc.WP:Value() then
+			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  Spell[0].dash) and SReady[0] then
+				CastSkillShot(0, GetMousePos())
+			end
+		end
+		self.Passive = GetBuffData(myHero,"kindredmarkofthekindredstackcounter").Stacks
+		if BM.Misc.B:Value() then
+			if not self.Farsight and GetLevel(myHero) >= 9 and GetDistance(myHero,basePos) < 550 then
+				BuyItem(3363)
+				self.Farsight = true
 			end
 		end
 	end
 end
 
-function Jinx:JungleClear()
-	for _,mob in pairs(SLM) do
+function Kindred:Combo(Unit)
+local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):normalized()*Spell[0].dash
+
+	if SReady[2] and SReady[0] and BM.Combo.QE:Value() and GetDistance(Unit) > Spell[0].range and GetDistance(AfterQ, Unit) <= 450 then
+		CastSkillShot(0, GetMousePos())
+			DelayAction(function() CastTargetSpell(Unit, 2) end, 1)
+	end
+	if SReady[0] and BM.Combo.Q:Value() and ValidTarget(Unit, Spell[0].range) and BM.QOptions.QC:Value() == false or (GetDistance(Unit) > Spell[0].range and GetDistance(AfterQ, Unit) <= 450)  then
+    	CastSkillShot(0, GetMousePos()) 
+	end
+	if SReady[1] and BM.Combo.W:Value() and ValidTarget(Unit, Spell[1].range) then 
+		CastSpell(1)
+	end
+	if SReady[2] and BM.Combo.E:Value() and ValidTarget(Unit, Spell[2].range) then 
+		CastTargetSpell(Unit, 2)
+	end
+end
+
+function Kindred:LaneClear()
+	local QMana = (Spell[0].mana*100)/GetMaxMana(myHero)
+	local WMana = (Spell[1].mana*100)/GetMaxMana(myHero)
+	local EMana = (Spell[2].mana*100)/GetMaxMana(myHero)
+	for _, mob in pairs(SLM) do	
 		if GetTeam(mob) == MINION_JUNGLE then
-			
-			if BM.JC.Q.QL:Value() == 1 and BM.JC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and not minigun then
-					CastSpell(0)
+			if BM.QOptions.QJ:Value() == false and SReady[0] and BM.JunglerClear.Q:Value() and ValidTarget(mob, Spell[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) --[[and (GetPercentMP(myHero)- QMana) >= BM.JunglerClear.MM:Value()]] then 
+				CastSkillShot(0, GetMousePos())
+			end
+			if SReady[1] and ValidTarget(mob, Spell[1].range) and IsTargetable(mob) and BM.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.JunglerClear.MM:Value() and self:TotalHp(Spell[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
+   				CastSpell(1)
+    		end
+    		if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+   				CastTargetSpell(mob, 2)
+   			end
+  	 	end
+		if GetTeam(mob) == MINION_ENEMY then
+			if BM.QOptions.QL:Value() == false and SReady[0] and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and ValidTarget(mob, Spell[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
+				CastSkillShot(0, GetMousePos())
+			end
+			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.LaneClear.MM:Value() and self:TotalHp(Spell[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
+				CastSpell(1)
+			end
+			if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+				CastTargetSpell(mob, 2)
+			end
+		end
+	end
+end
+
+function Kindred:AutoR()
+	if BM.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and SReady[3] then
+		for i, allies in pairs(GetAllyHeroes()) do
+			if GetPercentHP(allies) <= 20 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= Spell[3].range2 and EnemiesAround(allies, 1500) >= BM.ROptions.EA:Value() then
+				CastTargetSpell(myHero, 3)
+			end
+		end
+		if GetPercentHP(myHero) <= 20 and BM.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= BM.ROptions.EA:Value() then
+			CastTargetSpell(myHero, 3)
+		end
+	end
+end
+
+function Kindred:OnProcComplete(unit, spell)
+	local QMana = (Spell[0].mana*100)/GetMaxMana(myHero)
+	if unit == myHero then
+		if spell.name:lower():find("attack") then
+			if Mode == "LaneClear" then 
+				for _, mob in pairs(SLM) do	
+					if BM.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and SReady[0] then
+						CastSkillShot(0, GetMousePos())
+					end
+					if BM.QOptions.QJ:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE and BM.JunglerClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.JunglerClear.MM:Value() and SReady[0] then
+						CastSkillShot(0, GetMousePos()) 
+					end
 				end
-		
-			elseif BM.JC.Q.QL:Value() == 2 and BM.JC.Q.enable:Value() then
+			elseif Mode == "Combo" then
+				if BM.QOptions.QC:Value() and SReady[0] and BM.Combo.Q:Value() and ValidTarget(target, 500) then
+    				CastSkillShot(0, GetMousePos()) 
+				end
+			end
+		end
+	end
+end
+
+function Kindred:OnProc(unit, spell)
+	if unit == myHero and spell.name == "KindredQ" and BM.QOptions.C:Value() then
+		DelayAction(function() CastEmote(EMOTE_DANCE) end, .001)
+	end
+end
+
+function Kindred:OnUpdate(unit, buff)
+	if unit == myHero then
+		if buff.Name == "recall" or buff.Name == "OdinRecall" then
+			self.Recalling = true
+		end
+		--[[if buff.Name == "kindredmarkofthekindredstackcounter" then
+			self.Passive = self.Passive + buff.Stacks
+		end]]
+	end
+end
+
+function Kindred:OnRemove(unit, buff)
+	if unit == myHero and buff.Name == "recall" or buff.Name == "OdinRecall" then
+		self.Recalling = false
+	end
+end
+
+function Kindred:PassiveDmg(unit)
+	if self.Passive ~= 0 then
+		local PassiveDmg = self.Passive * 1.25
+		if GetTeam(unit) == MINION_JUNGLE then
+			return CalcDamage(myHero, unit, math.max(75+10*self.Passive, GetCurrentHP(unit)*(PassiveDmg/100)))
+		else
+			return CalcDamage(myHero, unit, GetCurrentHP(unit)*(PassiveDmg/100))
+		end
+	else return 0
+	end
+end
+
+function Kindred:TotalHp(range, pos)
+	local hp = 0
+	for _, mob in pairs(SLM) do
+		if not IsDead(mob) and IsTargetable(mob) and (GetTeam(mob) == MINION_JUNGLE or GetTeam(mob) == MINION_ENEMY) and GetDistance(mob, pos) <= range then
+			hp = hp + GetCurrentHP(mob)
+		end
+	end
+	return hp
+end
+
+function Kindred:WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
+
+	local Check = p1 + (Vector(p2) - p1):normalized()*distance/2
+	local Checkdistance = p1 +(Vector(p2) - p1):normalized()*distance
 	
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-			end
-		end
-	end
-end
-
-function Jinx:LastHit()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			if BM.LH.UMinig:Value() and ValidTarget(minion, self.RocketRange) and not minigun and SReady[0] then
-				CastSpell(0)
-			end
-		end
-	end
-end
-
-function Jinx:KS()
-	if not BM.KS.Enable:Value() then return end
-	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, Spell[1].range) and BM.KS.W:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range) and BM.KS.E:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
-		end
-		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[3],3,BM.p)
-		end
+	if MapPosition:inWall(Check) and not MapPosition:inWall(Checkdistance) then
+		return true
 	end
 end
 ---------------------------------------------------------------------------------------------

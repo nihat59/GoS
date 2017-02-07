@@ -1,7 +1,7 @@
 local SLAIO,Stage = 0.02,"Jani"
 
 local SLSChamps = {	
-	["Jinx"] = true,
+	["VelKoz"] = true,
 }
 
 local SLPatchnew = nil
@@ -556,249 +556,273 @@ end
 ---------------------------------------------------------------------------------------------
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
-class 'Jinx'
+class 'Velkoz'
 
-function Jinx:__init()
+function Velkoz:__init()
 
-
+	self.Dmg = {
+	[-1] = function (unit) return 25 + myHero.level*8 + GetBonusAP(myHero) * .5 end,
+	[0] = function (unit) return CalcDamage(myHero, unit, 40 * GetCastLevel(myHero,0) + 40 + GetBonusAP(myHero), 0)*.6 end, 
+	[1] = function (unit) return CalcDamage(myHero, unit, 20 * GetCastLevel(myHero,1) + 10 + GetBonusDmg(myHero), 1)*.15 end, 
+	[2] = function (unit) return CalcDamage(myHero, unit, 30 * GetCastLevel(myHero,2) - 10 + GetBonusDmg(myHero), 2)*.3 end, 
+	[3] = function (unit) return self:RDmg(unit) end,
+	}
+	
 	Spell = {
-	[0] = { range = 25 * GetCastLevel(myHero,0) + 600 },
-	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
-	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false},
+	[-1]= { range = 1300, delay =.25, width = 75, speed = 813},
+	[0] = { range = 1000, delay =.25, width = 75, speed = 1150},
+	[1] = { delay = .1, speed = 1700, width = 100, range = 1050,type = "line",col=false},
+	[2] =  { delay = 0.1, speed = 1700, range = 850, radius = 200 ,type = "circular",col=false },
 	}
-	
-	
-	Dmg = {
-	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * 1.4, 0) end,
-	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) 
-	local dmg = 150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(GetMaxHP(unit)-GetCurrentHP(unit))*(.20+GetCastLevel(myHero,3)*.5)
-	return CalcDamage(myHero,unit, math.min(math.max(dmg*.1,dmg*GetDistance(GetOrigin(myHero), GetOrigin(unit))/1650),dmg), 0) end
-	}
-	
-	BM:Menu("C", "Combo")
-	BM.C:Menu("Q", "Q")
-	BM.C.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.C.Q:Boolean("enable", "Enable Q Combo", true)
-	BM.C:Boolean("W", "Use W", true)
-	BM.C:Boolean("E", "Use E", true)
-	
-	BM:Menu("H", "Harass")
-	BM.H:Menu("Q", "Q")
-	BM.H.Q:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
-	BM.H.Q:Boolean("enable", "Enable Q Harass", true)
-	BM.H:Boolean("W", "Use W", true)
-	BM.H:Boolean("E", "Use E", true)
-	
-	BM:Menu("LC", "LaneClear")
-	BM.LC:Menu("Q", "Q")
-	BM.LC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.LC.Q:Boolean("enable", "Enable Q Laneclear", true)
-	BM.LC:Boolean("W", "Use W", false)
-	
-	BM:Menu("JC", "JungleClear")
-	BM.JC:Menu("Q", "Q")
-	BM.JC.Q:DropDown("QL", "Q-Logic", 1, {"Only Minigun", "Only Rockets"})
-	BM.JC.Q:Boolean("enable", "Enable Q Jungleclear", true)
-	BM.JC:Boolean("W", "Use W", false)
-	
-	BM:Menu("LH", "LastHit")
-	BM.LH:Boolean("UMinig", "Use only Minigun", true)
-	
-	BM:Menu("KS", "Killsteal")
-	BM.KS:Boolean("Enable", "Enable Killsteal", true)
-	BM.KS:Boolean("W", "Use W", true)
-	BM.KS:Boolean("E", "Use E", true)
-	BM.KS:Boolean("R", "Enable R KS", true)
-	BM.KS:Slider("mDTT", "R - max Distance to target", 3000, 675, 20000, 10)
-	BM.KS:Slider("DTT", "R - min Distance to target", 1000, 675, 20000, 10)
-	
+
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q",true)
+	BM.C:DropDown("QM","Q Mode", 1, {"New","Old"})
+	BM.C:DropDown("Z","Split Mode", 1, {"Percise","Performance"}, function() print("Reload to change QMode") end)
+	BM.C:Boolean("W", "Use W",true)
+	BM.C:Boolean("E", "Use E",true)
+	BM.C:Boolean("R", "Use R",true)
+	BM.C:Boolean("M", "Mouse follow",true)
+
 	BM:Menu("TS", "TargetSelector")
-	ts = SLTS("AD",BM.TS,false)
+	ts = SLTS("AP",BM.TS,false)
 	
-	BM:Menu("p", "Prediction")
+	BM:SubMenu("p", "Prediction")
+	
+	BM:SubMenu("A", "Advanced")
+	BM.A:Slider("S", "SplitMod", .075, .05, .1, .005)
+	BM.A:Slider("C", "QChecks", 20, 5, 50, 1)
+	BM.A:Boolean("D","Developer Draws", false)
+
+	self.cTable = {}
+	self.Researched = {}
+	self.Deconstructed = {}
+	self.QBall = nil
+	self.ult = not GotBuff(myHero,"VelkozR") == 0
+	self.DegreeTable={22.5,-22.5,45,-45, 15, -15, 30, -30}
+	self.QStart = nil
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
-	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
-	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
-
-	for i = 1,3 do
+	Callback.Add(BM.C.Z:Value() == 1 and "Draw" or "Tick", function() self:Split() end)
+	Callback.Add("CreateObj", function(object) self:CreateObj(object) end)
+	Callback.Add("DeleteObj", function(object) self:DeleteObj(object) end)
+	Callback.Add("UpdateBuff", function(unit,buffProc) self:UpdateBuff(unit,buffProc) end)
+	Callback.Add("RemoveBuff", function(unit,buffProc) self:RemoveBuff(unit,buffProc) end)
+	Callback.Add("ProcessSpellComplete", function(unit,spellProc) self:ProcessSpellComplete(unit,spellProc) end)
+	
+	--[[AntiChannel()
+	AntiGapCloser()
+	DelayAction( function ()
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
+	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
+	end,.001)
+	--]]
+	for i = 1,2 do
 		PredMenu(BM.p, i)	
 	end
 end
-
-function Jinx:UpdateBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = true
+function Velkoz:ProcessSpellComplete(unit,spellProc)
+	if unit == myHero and spellProc.name:lower() == "velkozq" then
+		self.QStart= Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*5
+	end
+end
+--[[
+function Velkoz:AntiChannel(unit,range)
+	if BM.AC.E:Value() and range < Spell[2].range and SReady[2] then
+		CastSkillShot(2,unit.pos)
 	end
 end
 
-function Jinx:RemoveBuff(unit, buff)
-	if unit == myHero and buff.Name == "jinxqicon" then
-		minigun = false
+function Velkoz:AntiGapCloser(unit,range)
+	if BM.AGC.E:Value() and range < Spell[2].range and SReady[2] then
+		CastSkillShot(2,unit.pos)
 	end
-end
+end--]]
 
-function Jinx:Tick()
-	if myHero.dead then return end
-	
-	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
-	target = ts:GetTarget()
-	
+function Velkoz:Tick()
 	GetReady()
-		
-	self:KS()
-		
+	target = ts:GetTarget()
+
 	if Mode == "Combo" then
 		self:Combo(target)
-	elseif Mode == "Harass" then
-		self:Harass(target)
 	elseif Mode == "LaneClear" then
-		self:LaneClear()
-		self:JungleClear()
+	--	self:LaneClear()
+	--	self:JungleClear()
 	elseif Mode == "LastHit" then
-		self:LastHit()
+	--	self:LastHit()
+	elseif Mode == "Harass" then
+	--	self:Harass(target)
 	else
 		return
 	end
 end
 
-function Jinx:ProcessSpellComplete(u,s)
-	if s and s.name:lower():find("attack") and u.isMe then
-		local target = s.target
-		if Mode == "Combo" and target then
-			if BM.C.Q.QL:Value() == 1 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end
-			elseif BM.C.Q.QL:Value() == 2 and BM.C.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end	
-		elseif Mode == "Harass" and target then
-			if BM.H.Q.QL:Value() == 1 and BM.H.Q.enable:Value() then
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			elseif BM.C.Q.QL:Value() == 2 and BM.H.Q.enable:Value() then	
-				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-					CastSpell(0)
-				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-					CastSpell(0)
-				end		
-			end		
-		end
-	end
-end
-
-function Jinx:Combo(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
-end
-
-function Jinx:Harass(target)
-	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
-	end	
-	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
-	end	
-end
-
-function Jinx:LaneClear()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			
-			if BM.LC.Q.QL:Value() == 1 and BM.LC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and not minigun then
-					CastSpell(0)
-				end
-		
-			elseif BM.LC.Q.QL:Value() == 2 and BM.LC.Q.enable:Value() then
-	
-				if SReady[0] and ValidTarget(minion, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(minion, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-			end
-		end
-	end
-end
-
-function Jinx:JungleClear()
-	for _,mob in pairs(SLM) do
-		if GetTeam(mob) == MINION_JUNGLE then
-			
-			if BM.JC.Q.QL:Value() == 1 and BM.JC.Q.enable:Value() then	
-			
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and not minigun then
-					CastSpell(0)
-				end
-		
-			elseif BM.JC.Q.QL:Value() == 2 and BM.JC.Q.enable:Value() then
-	
-				if SReady[0] and ValidTarget(mob, self.RocketRange) and minigun then
-					CastSpell(0)
-				end	
-			end
-			
-			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-			end
-		end
-	end
-end
-
-function Jinx:LastHit()
-	for _,minion in pairs(SLM) do
-		if GetTeam(minion) == MINION_ENEMY then
-			if BM.LH.UMinig:Value() and ValidTarget(minion, self.RocketRange) and not minigun and SReady[0] then
-				CastSpell(0)
-			end
-		end
-	end
-end
-
-function Jinx:KS()
-	if not BM.KS.Enable:Value() then return end
-	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, Spell[1].range) and BM.KS.W:Value() then
+function Velkoz:Combo(unit)
+	if Mode == "Combo" and not self.ult then
+		if SReady[1] and ValidTarget(unit,1050) and BM.C.W:Value() then
 			CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range) and BM.KS.E:Value() then
+			
+		if SReady[2] and ValidTarget(unit,850) and BM.C.E:Value() then
 			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 		end
-		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
-			CastGenericSkillShot(myHero,unit,Spell[3],3,BM.p)
+		if SReady[3] and ValidTarget(unit,1500) and unit.distance > 350 and unit.health + unit.shieldAD + unit.shieldAP < self:RDmg(unit) and BM.C.R:Value() then
+			--SetCursorPos(unit.pos2D.x,unit.pos2D.y)
+			CastSkillShot(3,unit.pos)
+		end
+	elseif Mode == "Combo" and self.ult and unit.valid and WorldToScreen(1,unit.pos).flag and BM.C.M:Value() then
+		SetCursorPos(unit.pos2D.x,unit.pos2D.y)
+	end
+end
+
+function Velkoz:Split()
+	local i = target or GetCurrentTarget()
+	if self.QBall then
+		if BM.C.QM:Value() == 1 then
+			local iPredN2 = nil
+			if BM.p.CP:Value() == 1 and OpenPredict then
+				iPredN2 = GetPrediction(i,Spell[0],self.QBall.pos).castPos
+			else
+				iPredN2 = GetPredictionForPlayer(self.QBall.pos,i,i.ms, Spell[0].speed, Spell[0].delay*1000, Spell[0].range, Spell[0].width, false, true).PredPos
+			end
+			self.QBall:Draw(100)
+			if iPredN2 and GetCastName(myHero,0) ~= "VelkozQ" and GetDistance(self.QBall,iPredN2) < 1500 and GetDistance(self.QBall,iPredN2) > 50 and math.abs(Vector(self.QBall.pos-GetObjectSpellStartPos(self.QBall)):normalized()*Vector(self.QBall.pos-iPredN2):normalized()) < .1 then
+				CastSpell(0)
+			end
+		else
+			if SReady[0] and GetCastName(myHero,0)~="VelkozQ" and self.QBall and self.QStart then
+				local split=GetPrediction(i, Spell[-1], GetOrigin(self.QBall))
+				local BVector = Vector((GetOrigin(self.QBall))-Vector(self.QStart))
+				local HVector = Vector((GetOrigin(self.QBall))-Vector(split.castPos))
+				if BM.A.D:Value() then 
+					DrawLine(WorldToScreen(0, self.QStart).x, WorldToScreen(0, self.QStart).y, WorldToScreen(0, self.QBall).x, WorldToScreen(0, self.QBall).y, 3, GoS.White)
+					DrawLine(WorldToScreen(0, self.QBall).x, WorldToScreen(0, self.QBall).y, WorldToScreen(0, split.castPos).x, WorldToScreen(0, split.castPos).y, 3, GoS.White)
+					DrawText(Velkoz:ScalarProduct(BVector,HVector)^2,30,500,20,GoS.White)
+				end
+				if ValidTarget(i,1600) and Velkoz:ScalarProduct(BVector,HVector)^2 < BM.A.C:Value()*.001 then
+					CastSpell(0)
+				end
+			end
+		end
+	elseif not self.ult then
+		local iPred = nil
+		if BM.p.CP:Value() == 1 and OpenPredict then
+			iPred = GetPrediction(i,Spell[-1]).castPos
+		else
+			iPred = GetPredictionForPlayer(myHero.pos,i,i.ms, Spell[-1].speed, Spell[-1].delay*1000, Spell[-1].range, Spell[-1].width, true, true).PredPos
+		end
+		if iPred then
+			local iPred2D = WorldToScreen(0,iPred)
+			local lowest = 9999999
+			local lowestV = nil
+			if not i.valid or myHero.dead then return end
+			local BVec = Vector(iPred) - Vector(myHero.pos)
+			for l = -math.pi*.5, math.pi*.5, math.pi*.05 do
+				local sideVec = Vector(BVec):rotated(0,l,0)
+				local sideVec2 = Vector(sideVec):perpendicular()
+				if not VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2) then return end
+				local JVector = Vector(VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2 ).x , myHero.pos.y , VectorIntersection( myHero.pos, myHero.pos + sideVec, iPred, iPred + sideVec2).y)
+				local JVector2D = WorldToScreen(0,JVector)
+				if GetDistance(JVector) < 1050 and GetDistance(iPred,JVector) < 1050 and CountObjectsOnLineSegment(myHero, Vector(JVector), 125, self.cTable) == 0 and CountObjectsOnLineSegment(i, Vector(JVector), 100, self.cTable) == 0 then
+					if BM.A.D:Value() then
+						DrawCircle(JVector,50,1,3,GoS.White)
+						DrawLine(myHero.pos2D.x,myHero.pos2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
+						DrawLine(iPred2D.x,iPred2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
+					end
+					if JVector and GetDistance(iPred,JVector) < lowest then
+						lowestV = JVector
+						lowest = GetDistance(iPred,JVector)
+					end
+				end
+			end
+			if Mode == "Combo" and lowestV and GetCastName(myHero,0) == "VelkozQ" and BM.C.QM:Value() == 1 then
+				if GetDistance(lowestV) > 150 then
+					CastSkillShot(0,lowestV)
+				else
+					CastSkillShot(0,i.pos)
+				end
+			end
+		end
+		if Mode == "Combo" and BM.C.Q:Value() and GetCastName(myHero,0)=="VelkozQ" and ValidTarget(i,1400) and BM.C.QM:Value() == 2 then
+			local direct=GetPrediction(i,Spell[0])
+			if direct and direct.hitChance>=20/100 and not direct:mCollision(1) then
+				self.QStart=GetOrigin(myHero)
+				CastSkillShot(0,direct.castPos)
+			end
+			local BVec = Vector(GetOrigin(i)) - Vector(GetOrigin(myHero))
+			local dist = math.sqrt(GetDistance(GetOrigin(myHero),GetOrigin(i))^2/2)
+			for l=1,5 do
+				local sideVec=Velkoz:getVec(BVec,self.DegreeTable[l]):normalized()*dist
+				local circlespot = sideVec+GetOrigin(myHero)
+				local QPred = GetPrediction(i, Spell[0], circlespot)
+				local QPred2 = GetPrediction(myHero, Spell[0], circlespot)
+				if not QPred:mCollision(1) and not QPred2:mCollision(1) then
+					CastSkillShot(0,circlespot)
+					self.QStart = GetOrigin(myHero)
+				end
+			end
+		end
+	end
+end
+
+function Velkoz:getVec(base, degr)
+	local x,y,z=base:unpack()
+	x=x*math.cos(Velkoz:degrad(degr))-z*math.sin(Velkoz:degrad(degr))
+	z=z*math.cos(Velkoz:degrad(degr))+x*math.sin(Velkoz:degrad(degr))
+	return Vector(x,y,z)
+end
+
+function Velkoz:ScalarProduct(v1,v2)
+	return (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z)/(v1:len()*v2:len())
+end
+
+function Velkoz:degrad(degr)
+	degr=(degr/180)*math.pi
+	return degr
+end
+
+function Velkoz:RDmg(unit)
+	local hP = math.min(math.max(1550 - unit.distance,0)/(unit.ms*.8),2.5)/2.5
+	local pT = (self.Deconstructed[unit.networkID] or 0) + math.floor(hP/0.28)
+	local damage = hP * (275 + 175*GetCastLevel(myHero,3) + GetBonusAP(myHero) * 1.25)	
+	return self.Researched[unit.networkID] and damage + (pT > 2 and self.Dmg[-1](unit) or 0) or CalcDamage(myHero,unit,0,damage) + (pT > 2 and self.Dmg[-1](unit) or 0)
+end	
+
+function Velkoz:CreateObj(obj)
+	if obj.isSpell and obj.spellOwner.isMe and obj.spellName == "VelkozQMissile" then
+		self.QBall = obj
+		DelayAction(function() self.QBall = nil end ,2)
+	end
+end
+
+function Velkoz:DeleteObj(obj)
+	if obj.isSpell and obj.spellOwner.isMe and obj.spellName == "VelkozQMissile" then
+		self.QBall = nil
+	end
+end
+
+function Velkoz:UpdateBuff(u,buffProc)
+	if u.isMe and buffProc.Name == "VelkozR" then 
+		self.ult = true
+		Stop(true)
+	elseif u.team ~= myHero.team and u.isHero then
+		if buffProc.Name == "velkozresearchedstack" then
+			self.Researched[u.networkID] = true
+		elseif buffProc.Name == "velkozresearchstack"  then
+			self.Deconstructed[u.networkID] = buffProc.Count
+		end
+	end
+end
+
+function Velkoz:RemoveBuff(u,buffProc)
+	if u.isMe and buffProc.Name == "VelkozR" then 
+		self.ult = false
+		Stop(false)
+	elseif u.team ~= myHero.team and u.isHero then
+		if buffProc.Name == "velkozresearchedstack" then
+			self.Researched[u.networkID] = false
+		elseif buffProc.Name == "velkozresearchstack" then
+			self.Deconstructed[u.networkID] = nil
 		end
 	end
 end
